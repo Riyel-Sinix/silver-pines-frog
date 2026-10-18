@@ -6,7 +6,8 @@
 - **Cheat Engine 修改表**：无敌、无限弹药、一击必杀等 12 项功能，给手残党用。
 
 *A frog ("奶蛙") player-model replacement and a Cheat Engine table for the single-player game Silver Pines.
-The repository contains no game files: the mod is generated from your own copy of the game.*
+The source contains no game files; a prebuilt package for the current game version is on the
+[Releases](https://github.com/Riyel-Sinix/silver-pines-frog/releases) page.*
 
 ![奶蛙各动作预览](docs/preview.jpg)
 
@@ -23,9 +24,15 @@ The repository contains no game files: the mod is generated from your own copy o
 - 朝镜头走、进门、楼梯转身时用奶蛙的正面 / 背面（根据三视图生成）。
 - 站着待机时每个循环（约 3 秒）斜眼瞥一次「惊鸿一瞥」，左右张望看镜头时也会。
 
-### 生成
+### 直接下载
 
-仓库里没有游戏文件，mod 要用你自己的游戏生成（约 13 分钟）。
+到 [Releases](https://github.com/Riyel-Sinix/silver-pines-frog/releases) 下载 `silver-pines-frog-v4.zip`，解压后**先退出游戏**，
+双击 `install_frog.bat`。游戏不在 `D:\Games\Silver Pines` 的话，把游戏文件夹拖到这个 bat 文件上。
+卸载用同一个文件夹里的 `restore_original.bat`。打包的资源包只适用于当前版本的游戏（2026 年 10 月）。
+
+### 自己生成
+
+源码里没有游戏文件，也可以用你自己的游戏生成 mod（约 13 分钟）。游戏更新后只能用这种方式。
 
 1. 安装 Python 3.12 和依赖：
 
@@ -99,7 +106,8 @@ The repository contains no game files: the mod is generated from your own copy o
 
 ## 声明
 
-- Silver Pines 版权归 Wych Elm / Team17 所有。本仓库不含任何游戏文件；生成的资源包只用于你自己的游戏，请不要分发。
+- Silver Pines 版权归 Wych Elm / Team17 所有。仓库源码不含游戏文件；Releases 里的资源包是修改过的游戏文件，
+  仅供已拥有正版游戏的玩家使用，请勿二次分发，版权方要求时会立即删除。
 - 奶蛙图片来自网络（表情包），版权归原作者所有，如有侵权请联系删除。
 - 用到的工具：[UnityPy](https://github.com/K0lb3/UnityPy)、[Il2CppDumper](https://github.com/Perfare/Il2CppDumper)、
   [AddressablesTools](https://github.com/nesrak1/AddressablesTools)、[Cheat Engine](https://www.cheatengine.org/)、
