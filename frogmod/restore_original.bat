@@ -16,9 +16,9 @@ set "MSG=fail"
 if not exist "%SW%\%BUNDLE%" (set "MSG=no_game" & goto :show)
 tasklist /FI "IMAGENAME eq Carpenter.exe" | "%SystemRoot%\System32\find.exe" /I "Carpenter.exe" >nul
 if not errorlevel 1 (set "MSG=running" & goto :show)
-if not exist "%HERE%backup\%BUNDLE%" (set "MSG=no_backup" & goto :show)
+if not exist "%HERE%backup\" (set "MSG=no_backup" & goto :show)
 
-copy /Y "%HERE%backup\%BUNDLE%" "%SW%\%BUNDLE%" >nul || goto :show
+if exist "%HERE%backup\%BUNDLE%" copy /Y "%HERE%backup\%BUNDLE%" "%SW%\%BUNDLE%" >nul || goto :show
 if exist "%HERE%backup\catalog.bin" copy /Y "%HERE%backup\catalog.bin" "%AA%\catalog.bin" >nul || goto :show
 if exist "%HERE%backup\patches\" (
   for %%F in ("%HERE%backup\patches\*.bundle") do (
@@ -27,11 +27,15 @@ if exist "%HERE%backup\patches\" (
 )
 rem globalgamemanagers is put back only when the size matches: after a game update the old copy must not return
 set "MSG=done"
-if not exist "%HERE%backup\globalgamemanagers" goto :show
+if not exist "%HERE%backup\globalgamemanagers" goto :restored
 for %%A in ("%GGM%") do set "SZ_GAME=%%~zA"
 for %%A in ("%HERE%backup\globalgamemanagers") do set "SZ_BAK=%%~zA"
-if not "%SZ_GAME%"=="%SZ_BAK%" goto :show
+if not "%SZ_GAME%"=="%SZ_BAK%" goto :restored
 copy /Y "%HERE%backup\globalgamemanagers" "%GGM%" >nul || (set "MSG=fail" & goto :show)
+
+:restored
+rem files that were already the mod's when this folder installed it have no backup (see install_frog.bat)
+if exist "%HERE%backup\no_original.txt" set "MSG=done_partial"
 
 :show
 chcp 65001 >nul
@@ -39,6 +43,13 @@ goto :msg_%MSG%
 
 :msg_done
 echo 已恢复原版主角。
+pause
+exit /b 0
+
+:msg_done_partial
+echo 已恢复备份里的原版文件。
+echo 安装时有些文件已经是旧版 mod 的，没有原版备份（清单在 backup\no_original.txt）。
+echo 请在 Steam 里对 Silver Pines「验证游戏文件的完整性」，把它们也恢复成原版。
 pause
 exit /b 0
 

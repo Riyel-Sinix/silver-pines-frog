@@ -193,11 +193,17 @@
   multi-byte text (a Chinese path or Chinese text with a variable) when a later goto skips a line with Chinese
   text: the tail of that line gets executed as a command. Reproduced in small cases; the v4 bats were exposed to
   it when unzipped into a folder with Chinese characters. Also `A || B & C` runs C regardless: parenthesized.
+  Upgrades (for the v5 release): install backs a game file up only if it differs from the mod's copy
+  (size, then `fc /b`). A v4 installed from another folder leaves mod files in the game that are no originals;
+  they are listed in `backup\no_original.txt` instead, and restore then restores what it has and asks for
+  Steam's "verify integrity of game files". Unzipping v5 over the v4 folder keeps its backup and needs nothing.
   Tested against a fake game folder (stage under "新建文件夹 (测试)", game under "Program Files (x86)"): install,
-  restore, game updated (ggm size differs), wrong folder, no build; through a pipe and in a console window.
+  restore, game updated (ggm size differs), wrong folder, no build, upgrade from a new folder, upgrade over
+  the v4 folder; through a pipe and in a console window.
+- The laugh plays through Unity audio, so the game's volume sliders (FMOD buses) do not affect it. Whether the
+  pause menu stops it is untested (Unity's AudioListener.pause is not known to be set by the game).
 - Build: `frog_extras.py frogmod/build` ~10 s (clip bundle 1.1 -> 8.3 MB, portraits 7.1 -> 8.5 MB,
-  health 2.2 MB);
-  `scripts/verify_extras.py` reads everything back (frame order, 16.42 s, FMOD decode, template, preload table,
+  health 2.2 MB); `scripts/verify_extras.py` reads everything back (frame order, 16.42 s, FMOD decode, template, preload table,
   only AssetBundle + template changed among the original objects). Installed 2026-10-18 (210 patch bundles +
   globalgamemanagers; originals in frogmod/backup). Player.log is in
   `%USERPROFILE%\AppData\LocalLow\Wych Elm\Silver Pines\`.

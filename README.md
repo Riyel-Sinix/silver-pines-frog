@@ -34,6 +34,10 @@ The source contains no game files; a prebuilt package for the current game versi
 双击 `install_frog.bat`。游戏不在 `D:\Games\Silver Pines` 的话，把游戏文件夹拖到这个 bat 文件上。
 卸载用同一个文件夹里的 `restore_original.bat`。打包的资源包只适用于当前版本的游戏（2026 年 10 月）。
 
+从旧版本升级：把新版解压到旧版的同一个文件夹里覆盖（保留里面的 `backup` 文件夹），再运行 `install_frog.bat`；
+或者先用旧版的 `restore_original.bat` 卸载。如果在新文件夹里直接安装，已经是 mod 版的文件就没有原版可以备份，
+脚本会提示，以后卸载时还要在 Steam 里「验证游戏文件的完整性」。
+
 ### 自己生成
 
 源码里没有游戏文件，也可以用你自己的游戏生成 mod（约 13 分钟）。游戏更新后只能用这种方式。
@@ -88,6 +92,7 @@ The source contains no game files; a prebuilt package for the current game versi
   第一次安装会把原版文件备份到 `frogmod/backup/`。
 - 为了放笑声，安装还会改 `Carpenter_Data/globalgamemanagers` 里的一个开关，打开 Unity 自带的声音系统
   （游戏本身的声音走 FMOD，原本把 Unity 的声音关掉了）。这个文件同样会备份；游戏版本对不上时不改，只是没有笑声。
+  所以笑声不受游戏里的音量设置影响。
 - 卸载：退出游戏，双击 `frogmod/restore_original.bat`，恢复原版主角。
 - 游戏更新后：先卸载，删掉 `frogmod/backup/`，再重新生成和安装。`_dump/` 里的数据对应当前版本，
   更新后补丁资源包的文件名可能会变，需要用 `scripts/` 里的扫描脚本重新生成。
