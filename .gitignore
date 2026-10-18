@@ -1,0 +1,36 @@
+# Only what is listed here belongs to the repository. Everything else in this folder stays local: the game's own
+# files that the installer backs up (frogmod/backup), built bundles (they hold the game's assets), dumps of the
+# game's code and data, screenshots and test copies of tools.
+/*
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/LICENSE
+!/requirements.txt
+!/MODLOG.md
+!/SilverPines.CT
+!/docs/
+
+!/scripts/
+/scripts/__pycache__/
+/scripts/build_frog_bundle.py
+/scripts/cerpc.sh
+/scripts/fix_bats.py
+
+# metadata the frog builder reads (sprite names per patch bundle, per-sprite weapon grip), and the clip lists
+!/_dump/
+/_dump/*
+!/_dump/patch_bundle_sprites.txt
+!/_dump/sprite_nodes.json
+!/_dump/clip_map.txt
+!/_dump/all_player_clips.txt
+!/_dump/scan_clips.txt
+
+!/frogmod/
+/frogmod/*
+!/frogmod/install_frog.bat
+!/frogmod/restore_original.bat
+!/frogmod/frog_source.png
+!/frogmod/frog_cutout.png
+!/frogmod/source/
+!/frogmod/parts/

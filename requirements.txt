@@ -1,0 +1,10 @@
+# frog mod builder (scripts/frogify.py, frog_parts.py, frog_views.py, verify_*.py); tested with Python 3.12
+UnityPy==1.25.4
+Pillow==12.3.0
+numpy==2.5.3
+opencv-python==5.0.0.93
+
+# only for the Cheat Engine research scripts (disasm.py, xrefs.py, aobcheck.py, bundle_crc.py)
+# capstone==5.0.9
+# pefile==2024.8.26
+# lz4==4.4.5

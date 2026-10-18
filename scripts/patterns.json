@@ -1,0 +1,10 @@
+{
+  "GDC_TI (ConsumeStamina)": {"aob": "48 8B 05 ?? ?? ?? ?? 0F 57 FF C7 84 24 88 00 00 00 00 00 00 00 C7 44 24 30 00 00 00 00 48 8B 88 B8 00 00 00 80 79 03 00", "expect_rva": "0x876646"},
+  "GR_TI (GlobalReferences.get_Instance)": {"aob": "48 8B 05 ?? ?? ?? ?? 0F 11 44 24 20 48 8B 88 B8 00 00 00 48 8B 19 48 8B 0D", "expect_rva": "0x822C98"},
+  "CH_TI (ApplyDamageInstance JESUS)": {"aob": "48 8B 05 ?? ?? ?? ?? 45 32 ED 44 8B A3 AC 00 00 00 44 39 B8 E4 00 00 00", "expect_rva": "0x7C2162"},
+  "OHK (ApplyDamageInstance after IsPlayer)": {"aob": "84 C0 74 56 48 8B 05 ?? ?? ?? ?? 48 8B 88 B8 00 00 00 44 38 79 04 0F 85 ?? ?? ?? ?? 44 38 BB B0 00 00 00", "expect_rva": "0x7C1FFB", "patch_off": 0, "patch_len": 11},
+  "DUR1 (RemoveDurability subss)": {"aob": "F3 0F 10 43 60 F3 0F 5C C6 F3 0F 5F C2 0F 2F D0 F3 0F 11 43 60", "expect_rva": "0x6DFDBF", "patch_off": 5, "patch_len": 4},
+  "DUR2 (ApplyDurabilityLossToEquippedItem subss)": {"aob": "F3 0F 10 43 60 F3 0F 5C C6 F3 0F 5F C1 0F 2F C8 F3 0F 11 43 60", "expect_rva": "0x6E1860", "patch_off": 5, "patch_len": 4},
+  "POWER (CharacterInventory.Update drain)": {"aob": "F3 41 0F 59 C0 F3 0F 5C F0 45 33 C0 0F 28 CE 48 8B CF E8", "expect_rva": "0x7CA632", "patch_off": 5, "patch_len": 4},
+  "MONEY (RemoveMoney sub)": {"aob": "85 FF 7E 51 29 BB 00 01 00 00", "expect_rva": "0x6E79B7", "patch_off": 4, "patch_len": 6}
+}

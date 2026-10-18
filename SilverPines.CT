@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="42">
+  <CheatEntries>
+    <CheatEntry>
+      <ID>0</ID>
+      <Description>"【先勾这个】激活  Silver Pines 修改器"</Description>
+      <Options moHideChildren="1" moDeactivateChildrenAsWell="1"/>
+      <Color>0000C0</Color>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+{$lua}
+if syntaxcheck then return end
+-- Silver Pines (Unity 6000.3.15f1, IL2CPP) / Carpenter.exe
+-- Resolves every address by signature and validates IL2CPP class names before anything is written.
+local MOD = 'GameAssembly.dll'
+if getOpenedProcessID() == 0 or getAddressSafe(MOD) == nil then
+  error('没找到 GameAssembly.dll：请先点 CE 左上角的电脑图标打开 Carpenter.exe 进程，等游戏进到主菜单再勾选。')
+end
+
+SP = SP or {}
+SP.pid = getOpenedProcessID()
+SP.want = {}
+
+local function scan(tag, aob)
+  local a = AOBScanModuleUnique(MOD, aob, '+X')
+  if a == nil or a == 0 then
+    error('特征码没找到（' .. tag .. '）：游戏版本可能和本表不一致。')
+  end
+  return a
+end
+local function rip(ins, dispOff, insLen)  -- target of a RIP-relative operand
+  return ins + insLen + readInteger(ins + dispOff, true)
+end
+local function reg(sym, addr)
+  unregisterSymbol(sym)
+  registerSymbol(sym, addr, true)
+end
+
+SP.slot = {
+  GDC = { name = 'GameDebugCommands', addr = rip(scan('GameDebugCommands', '48 8B 05 ?? ?? ?? ?? 0F 57 FF C7 84 24 88 00 00 00 00 00 00 00 C7 44 24 30 00 00 00 00 48 8B 88 B8 00 00 00 80 79 03 00'), 3, 7) },
+  GR  = { name = 'GlobalReferences',  addr = rip(scan('GlobalReferences', '48 8B 05 ?? ?? ?? ?? 0F 11 44 24 20 48 8B 88 B8 00 00 00 48 8B 19 48 8B 0D'), 3, 7) },
+  CH  = { name = 'CharacterHealth',   addr = rip(scan('CharacterHealth', '48 8B 05 ?? ?? ?? ?? 45 32 ED 44 8B A3 AC 00 00 00 44 39 B8 E4 00 00 00'), 3, 7) },
+}
+
+-- CharacterHealth.ApplyDamageInstance, right after "if (GameUtils.IsPlayer(gameObject))"
+local ohk = scan('一击必杀', '84 C0 74 56 48 8B 05 ?? ?? ?? ?? 48 8B 88 B8 00 00 00 44 38 79 04 0F 85 ?? ?? ?? ?? 44 38 BB B0 00 00 00')
+if rip(ohk + 4, 3, 7) ~= SP.slot.GDC.addr then
+  error('一击必杀注入点校验失败：游戏版本可能和本表不一致。')
+end
+
+reg('SP_GDC_TI', SP.slot.GDC.addr)
+reg('SP_GR_TI',  SP.slot.GR.addr)
+reg('SP_OHK',    ohk)
+reg('SP_OHK_NP', ohk + 4 + 0x56)  -- the original "not the player" branch target
+reg('SP_DUR1',   scan('近战耐久1', 'F3 0F 10 43 60 F3 0F 5C C6 F3 0F 5F C2 0F 2F D0 F3 0F 11 43 60') + 5)
+reg('SP_DUR2',   scan('近战耐久2', 'F3 0F 10 43 60 F3 0F 5C C6 F3 0F 5F C1 0F 2F C8 F3 0F 11 43 60') + 5)
+reg('SP_POWER',  scan('电量', 'F3 41 0F 59 C0 F3 0F 5C F0 45 33 C0 0F 28 CE 48 8B CF E8') + 5)
+reg('SP_MONEY',  scan('金钱', '85 FF 7E 51 29 BB 00 01 00 00') + 4)
+
+-- Static-field block of an IL2CPP class, or nil until the game has initialised that class.
+function SP.statics(key)
+  local s = SP.slot and SP.slot[key]
+  if s == nil or getOpenedProcessID() ~= SP.pid then return nil end
+  local klass = readPointer(s.addr)
+  if klass == nil or klass == 0 or klass % 2 == 1 then return nil end
+  local np = readPointer(klass + 0x10)
+  if np == nil or np == 0 or readString(np, 64) ~= s.name then return nil end
+  local sf = readPointer(klass + 0xB8)
+  if sf == nil or sf == 0 then return nil end
+  return sf
+end
+
+-- Writes every requested flag; flags whose class is not initialised yet stay queued for the timer.
+function SP.apply()
+  for k, w in pairs(SP.want) do
+    local sf = SP.statics(w.key)
+    if sf ~= nil then
+      writeBytes(sf + w.off, w.val)
+      if w.val == 0 then SP.want[k] = nil end
+    end
+  end
+end
+
+function SP.flag(key, off, on)
+  SP.want[key .. ':' .. off] = { key = key, off = off, val = on and 1 or 0 }
+  SP.apply()
+end
+
+if SP.timer ~= nil then SP.timer.destroy() end
+SP.timer = createTimer(nil, false)
+SP.timer.Interval = 250
+SP.timer.OnTimer = function() pcall(SP.apply) end
+SP.timer.Enabled = true
+{$asm}
+
+[DISABLE]
+{$lua}
+if syntaxcheck then return end
+if SP ~= nil and SP.timer ~= nil then
+  SP.timer.destroy()
+  SP.timer = nil
+end
+{$asm}
+</AssemblerScript>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>1</ID>
+          <Description>"无敌（敌人、陷阱、迷雾都伤不到你）"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+{$lua}
+if syntaxcheck then return end
+if SP == nil or SP.flag == nil then error('请先勾选最上面的“激活”') end
+SP.flag('GDC', 4, true)   -- GameDebugCommands.CHEAT_INVINCIBLE
+{$asm}
+[DISABLE]
+{$lua}
+if syntaxcheck then return end
+if SP ~= nil and SP.flag ~= nil then SP.flag('GDC', 4, false) end
+{$asm}
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2</ID>
+          <Description>"不死（照常受伤，但受到致命伤时自动回满血）"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+{$lua}
+if syntaxcheck then return end
+if SP == nil or SP.flag == nil then error('请先勾选最上面的“激活”') end
+SP.flag('CH', 0, true)    -- CharacterHealth.JESUS_PLAYER
+{$asm}
+[DISABLE]
+{$lua}
+if syntaxcheck then return end
+if SP ~= nil and SP.flag ~= nil then SP.flag('CH', 0, false) end
+{$asm}
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>3</ID>
+          <Description>"无限体力（跑、跳、闪避、挥砍、格挡都不耗体力）"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+{$lua}
+if syntaxcheck then return end
+if SP == nil or SP.flag == nil then error('请先勾选最上面的“激活”') end
+SP.flag('GDC', 3, true)   -- GameDebugCommands.CHEAT_INFINITE_STAMINA
+{$asm}
+[DISABLE]
+{$lua}
+if syntaxcheck then return end
+if SP ~= nil and SP.flag ~= nil then SP.flag('GDC', 3, false) end
+{$asm}
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>4</ID>
+          <Description>"无限弹药（开枪不消耗子弹，不用换弹）"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+{$lua}
+if syntaxcheck then return end
+if SP == nil or SP.flag == nil then error('请先勾选最上面的“激活”') end
+SP.flag('GDC', 2, true)   -- GameDebugCommands.CHEAT_INFINITE_AMMO
+{$asm}
+[DISABLE]
+{$lua}
+if syntaxcheck then return end
+if SP ~= nil and SP.flag ~= nil then SP.flag('GDC', 2, false) end
+{$asm}
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>5</ID>
+          <Description>"近战武器不掉耐久（不会坏）"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+// MeleeWeaponItemInstance.RemoveDurability and its inlined copy in
+// PlayerMainInventory.ApplyDurabilityLossToEquippedItem: drop "durability -= amount"
+assert(SP_DUR1, F3 0F 5C C6)
+assert(SP_DUR2, F3 0F 5C C6)
+SP_DUR1:
+  db 90 90 90 90
+SP_DUR2:
+  db 90 90 90 90
+
+[DISABLE]
+SP_DUR1:
+  db F3 0F 5C C6
+SP_DUR2:
+  db F3 0F 5C C6
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>6</ID>
+          <Description>"一击必杀（敌人挨一下就死，剧情锁血的敌人不受影响）"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+// CharacterHealth.ApplyDamageInstance: when the damaged character is not the player,
+// raise the damage (edi) to 999999. set_Health still clamps to m_minimumHealth.
+assert(SP_OHK, 84 C0 74 56 48 8B 05)
+alloc(sp_ohk_mem, $100, SP_OHK)
+label(sp_ohk_bak)
+label(sp_ohk_player)
+label(sp_ohk_ret)
+registersymbol(sp_ohk_bak)
+
+sp_ohk_mem:
+  test al,al
+  jne sp_ohk_player
+  mov edi,#999999
+  jmp SP_OHK_NP
+sp_ohk_player:
+  mov rax,[SP_GDC_TI]
+  jmp sp_ohk_ret
+
+sp_ohk_bak:
+  readmem(SP_OHK, 11)
+
+SP_OHK:
+  jmp sp_ohk_mem
+  nop 6
+sp_ohk_ret:
+
+[DISABLE]
+SP_OHK:
+  readmem(sp_ohk_bak, 11)
+
+unregistersymbol(sp_ohk_bak)
+dealloc(sp_ohk_mem)
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>7</ID>
+          <Description>"必定打中弱点（伤害更高）"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+{$lua}
+if syntaxcheck then return end
+if SP == nil or SP.flag == nil then error('请先勾选最上面的“激活”') end
+SP.flag('GDC', 8, true)   -- GameDebugCommands.ALWAYS_WEAKPOINT_HIT
+{$asm}
+[DISABLE]
+{$lua}
+if syntaxcheck then return end
+if SP ~= nil and SP.flag ~= nil then SP.flag('GDC', 8, false) end
+{$asm}
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>8</ID>
+          <Description>"手电筒等电器电量不减"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+// CharacterInventory.Update: charge -= drainRate * deltaTime  ->  charge unchanged
+assert(SP_POWER, F3 0F 5C F0)
+SP_POWER:
+  db 90 90 90 90
+
+[DISABLE]
+SP_POWER:
+  db F3 0F 5C F0
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>9</ID>
+          <Description>"花钱不减少（投币、买东西钱不变）"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+// PlayerMainInventory.RemoveMoney: skip "m_money -= amount"
+assert(SP_MONEY, 29 BB 00 01 00 00)
+SP_MONEY:
+  db 90 90 90 90 90 90
+
+[DISABLE]
+SP_MONEY:
+  db 29 BB 00 01 00 00
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>10</ID>
+          <Description>"金钱（双击右边的数值可以直接改，读档后显示 ?? 属正常）"</Description>
+          <ShowAsSigned>1</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>[[[[SP_GR_TI]+B8]+0]+50]+100</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>11</ID>
+          <Description>"地图全显示"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+{$lua}
+if syntaxcheck then return end
+if SP == nil or SP.flag == nil then error('请先勾选最上面的“激活”') end
+SP.flag('GDC', 6, true)   -- GameDebugCommands.CHEAT_MAP_SHOW_EVERYTHING
+{$asm}
+[DISABLE]
+{$lua}
+if syntaxcheck then return end
+if SP ~= nil and SP.flag ~= nil then SP.flag('GDC', 6, false) end
+{$asm}
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>12</ID>
+          <Description>"万能钥匙（锁着的门/机关直接开，可能跳过谜题，卡关时再用）"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+{$lua}
+if syntaxcheck then return end
+if SP == nil or SP.flag == nil then error('请先勾选最上面的“激活”') end
+SP.flag('GDC', 5, true)   -- GameDebugCommands.CHEAT_MASTER_KEY
+{$asm}
+[DISABLE]
+{$lua}
+if syntaxcheck then return end
+if SP ~= nil and SP.flag ~= nil then SP.flag('GDC', 5, false) end
+{$asm}
+</AssemblerScript>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+  </CheatEntries>
+  <UserdefinedSymbols/>
+  <Comments>Silver Pines（Carpenter.exe，Unity 6000.3.15f1 IL2CPP）修改表
+
+用法：
+1. 先启动游戏，等到主菜单。
+2. 打开本表，点 CE 左上角的电脑图标，选 Carpenter.exe。
+3. 勾选最上面的“激活”，下面会展开各个功能，想要哪个勾哪个。
+4. 退出或重开游戏后：先把“激活”取消勾选，再重新打开进程、重新勾选。
+
+说明：
+- 无敌 / 无限体力 / 无限弹药 / 必中弱点 / 地图全显示 / 万能钥匙 用的是游戏开发者自己留在代码里的调试开关。
+- 进主菜单或读档期间勾选也可以，开关会在游戏初始化完对应模块后自动生效。
+- 全部只改内存，不改存档文件、不改游戏文件；取消勾选即恢复原样。
+</Comments>
+</CheatTable>
