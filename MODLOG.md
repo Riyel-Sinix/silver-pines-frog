@@ -127,3 +127,80 @@
   `frogmod/build_v3/`. Not yet checked in game. `scripts/showcase.py` renders frog-only rows per feature
   (_shots/v4_showcase.jpg).
 - Probes added: `scripts/hang_probe.py` (hang/swim measurements), `scripts/view_list.py` (view per frame).
+
+## Frog v5 (2026-10-18) — user: the radio/phone portrait becomes the thinking frog; after 10 s of idling play the
+## laughing-frog video, with its sound
+- Portrait: the face shown on phone calls is the protagonist's dialogue portrait. `sprites-characterportraits_
+  assets_all.bundle` holds one Sprite + Texture2D per portrait (Player 237x360; Phone_*, Roberts_radio and the
+  NPCs are separate). All 13 `portrait_Player*` textures become a close-up of `frogmod/source/frog_thinking.png`
+  (cut from its white app-icon tile; the tile's grey outline means "large light patch" = background; the body
+  clipped by the tile's rounded bottom corners is inpainted) on a dark backdrop, RGB24. Disappear_1/2 are
+  blurred and darkened, Inner/bleeding/bleeding2 posterized (bleeding with red streaks under the eyes).
+- Backpack (status page) photo, added after the user's first look: InGameMenu scene
+  `.../StatusContainer/Portrait/Health/PhotoMask/Portrait` is an Image (alpha 0.51, preserve aspect, 312x362 UI
+  units) showing `Assets/UI/Health/fine.png` from `team17_auto_base_general_compressed_assets_health.bundle`
+  (895x1000 RGB24, next to the polaroid frame). Found by following the Image's m_Sprite to its CAB and a
+  header-only scan of all bundles' node names (`scripts/find_cab.py`, 2 s for 2360 bundles). Replaced by the same
+  thinking-frog close-up (centred wider, unsharp-masked after the 3.9x upscale).
+- Thinking-frog cut-out details: the frog runs off the icon tile's bottom edge only (left/right are white tile),
+  the last two rows are blended with the tile's grey outline (repeated from row 253), the edge is eroded 1 px
+  (white rim when upscaled), and the rounded tile corners are left as the body's own contour (inpainting them
+  from the cream belly left pale wedges).
+- Laugh frames: `scripts/laugh_frames.py` cuts the 1280x720 video at 12 fps, 1.5-16.5 s (side view, turn,
+  laugh, fall, rolling) plus the fall (13.25-14.6 s) reversed so the frog stands again: 197 frames, mirrored
+  to face right. Background = unsaturated pixels (sat < 0.12, |R-B| < 24) connected to the frame border; the
+  shadow under the feet is tinted by the frog and matches the cream belly in colour, so within 70 px of the
+  lowest point any light, unsaturated pixel connected to the outside is floor too (the rolling frog's eye
+  whites are enclosed and stay).
+- Everything else is new data in the player clip bundle `team17_auto_base_characters_assets_player.bundle`
+  (it holds the Idle_Variants PlayMaker template and was not modded before), built by `scripts/frog_extras.py`:
+  - 197 Texture2D (DXT5, 230 px/unit, inline data) + Sprite (full-rect quads via `frogify.apply_sprite`), with
+    the Sprite/Texture2D types (type trees + hashes) copied from the main bundle. Frame 0 is scaled to the idle
+    frog's height (1.74 units, feet 0.068 above the pivot) and centred; the sideways drift is eased back over
+    the 16 get-up frames so the idle that follows does not jump. Path ids = MD5 of the names (reproducible).
+  - AnimationClip `Player_FrogLaugh`: a copy of Player_StandingIdleLookAround (bindings: SpriteAnimNodes n5
+    x/y/angle, then the SpriteRenderer sprite PPtr curve). The streamed clip is rewritten: -FLT_MAX sentinel
+    frame with all four curves, n5 held at the idle loop's first values, one discrete sprite key per frame,
+    +inf end frame; curveCount 3 + discreteCurveCount 1. `m_MuscleClipSize` (the runtime blob Unity
+    allocates) = 2528 + 4 x streamed words + 8 x m_ValueArrayDelta entries, exact for all 192 player clips.
+    No animation events: LookAround's FlashlightRotatedAway/Normal could leave the light turned if interrupted.
+  - AudioClip `FrogLaugh`: PCM16 44.1 kHz stereo in a one-sample FSB5 bank (version 1, mode 2, name table
+    padded so data starts 32-aligned) in a new `CAB-....resource` node (flags 0); DecompressOnLoad, PCM. No game
+    file has an AudioClip, so its type tree comes from UnityPy's TPK (TypeFlags/RefTypeHash filled in, blank
+    hash -> Unity reads it through the stored type tree). The bank round-trips through FMOD (fmod_toolkit).
+  - Preload range of `Idle_Variants.asset` grows by the 396 new objects; later ranges shift; nothing else moves.
+- Idle_Variants: NormalLoop's RandomWait min = max = 9.33 (10 s minus the 0.67 s Player_StandingIdleStart),
+  its Trigger goes straight to IdleFlourish_1 (RandomIdleFlourish is skipped). IdleFlourish_1 plays the laugh
+  clip (finish event Reset -> Init, so it repeats every ~26 s of standing) and gets two new actions:
+  AddComponent("UnityEngine.AudioSource", removeOnExit) and AudioPlay(volume 0.8, one shot FrogLaugh).
+  - PlayMaker checks each action's hash against `ActionData.GetActionTypeHashCode`: Jenkins one-at-a-time over
+    the UTF-16LE text "FieldType.FullName|" per public field, mod 1e8 (disassembled; reproduces RandomWait
+    22830861, BoolTest 12568740, SetBoolValue 65141543, RandomEvent 2087427). AddComponent = 38587512
+    (FsmOwnerDefault, FsmString, FsmObject, FsmBool), AudioPlay = 72231297 (FsmOwnerDefault, FsmFloat,
+    FsmObject, FsmBool, FsmEvent). Params: FsmEvent names live in stringParams, FsmString in fsmStringParams.
+  - ReflectionUtils.GetGlobalType tries typeName + ",Assembly-CSharp"/",PlayMaker"/..., then every loaded
+    assembly, then short names in UnityEngine/HutongGames namespaces, so "UnityEngine.AudioSource" resolves.
+  - Fsm.OnDisable and RunFSM.OnExit call Fsm.Stop -> ExitState -> OnExit, so leaving idle destroys the
+    AudioSource and the sound stops. ComponentAction.UpdateCache re-fetches when the cached component is
+    destroyed, so later laughs find the new AudioSource.
+- Unity audio: the game plays everything through FMOD (StreamingAssets/Master*.bank) and ships with
+  `globalgamemanagers` AudioManager.m_DisableAudio = true (file offset 5752; the AudioListener exists at
+  GameManager/AudioListener). frog_extras writes `build/globalgamemanagers` with that byte cleared (found by
+  re-serializing the AudioManager). install_frog.bat backs the file up and copies it only when its size matches
+  the game's; restore_original.bat puts the backup back only when the sizes match (an updated game keeps its own).
+- Bats rewritten: all logic is ASCII and `chcp 65001` runs only right before the messages (each message is a
+  label reached by goto). Under code page 65001 cmd misreads the batch file after a line whose %VAR% expands to
+  multi-byte text (a Chinese path or Chinese text with a variable) when a later goto skips a line with Chinese
+  text: the tail of that line gets executed as a command. Reproduced in small cases; the v4 bats were exposed to
+  it when unzipped into a folder with Chinese characters. Also `A || B & C` runs C regardless: parenthesized.
+  Tested against a fake game folder (stage under "新建文件夹 (测试)", game under "Program Files (x86)"): install,
+  restore, game updated (ggm size differs), wrong folder, no build; through a pipe and in a console window.
+- Build: `frog_extras.py frogmod/build` ~10 s (clip bundle 1.1 -> 8.3 MB, portraits 7.1 -> 8.5 MB,
+  health 2.2 MB);
+  `scripts/verify_extras.py` reads everything back (frame order, 16.42 s, FMOD decode, template, preload table,
+  only AssetBundle + template changed among the original objects). Installed 2026-10-18 (210 patch bundles +
+  globalgamemanagers; originals in frogmod/backup). Player.log is in
+  `%USERPROFILE%\AppData\LocalLow\Wych Elm\Silver Pines\`.
+- Checked in game by the user (2026-10-18): the laugh, its sound and the dialogue portrait work ("测试结果很棒");
+  that session's Player.log shows nothing from the new objects (no class, action or component errors). The
+  backpack photo came after that test: installed, not yet seen in game.

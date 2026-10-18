@@ -2,7 +2,8 @@
 
 单机游戏 **Silver Pines**（Wych Elm / Team17，Unity 6000.3.15f1，IL2CPP）的两个 mod：
 
-- **奶蛙主角**：把主角换成胖胖的黄色奶蛙，走路、跑步、举枪、近战、游泳、攀爬都有对应动作，待机时会做「惊鸿一瞥」表情。
+- **奶蛙主角**：把主角换成胖胖的黄色奶蛙，走路、跑步、举枪、近战、游泳、攀爬都有对应动作，待机时会做「惊鸿一瞥」表情，
+  站着不动 10 秒还会哈哈大笑、笑倒在地上打滚（带笑声），对话和背包里的主角头像也换成了奶蛙。
 - **Cheat Engine 修改表**：无敌、无限弹药、一击必杀等 12 项功能，给手残党用。
 
 *A frog ("奶蛙") player-model replacement and a Cheat Engine table for the single-player game Silver Pines.
@@ -22,11 +23,14 @@ The source contains no game files; a prebuilt package for the current game versi
 - 跑步摆臂；游泳时自由泳划水，踩水时双手在胸前划圈。
 - 爬梯子显示背面并双手交替往上抓；爬绳双手抓绳；扒墙沿时手一直抓着边。
 - 朝镜头走、进门、楼梯转身时用奶蛙的正面 / 背面（根据三视图生成）。
-- 站着待机时每个循环（约 3 秒）斜眼瞥一次「惊鸿一瞥」，左右张望看镜头时也会。
+- 站着待机时每个循环（约 3 秒）斜眼瞥一次「惊鸿一瞥」。
+- 站着不动 10 秒，奶蛙会转过来哈哈大笑、笑倒在地上打滚，大约 16 秒后站起来，带笑声；中途走开笑声就停。
+  受伤、中毒时的待机不会笑。
+- 对话（包括打电话）里主角的头像、背包（状态页）拍立得里的照片，都换成奶蛙托腮思考的表情包。
 
 ### 直接下载
 
-到 [Releases](https://github.com/Riyel-Sinix/silver-pines-frog/releases) 下载 `silver-pines-frog-v4.zip`，解压后**先退出游戏**，
+到 [Releases](https://github.com/Riyel-Sinix/silver-pines-frog/releases) 下载最新的 `silver-pines-frog-v*.zip`，解压后**先退出游戏**，
 双击 `install_frog.bat`。游戏不在 `D:\Games\Silver Pines` 的话，把游戏文件夹拖到这个 bat 文件上。
 卸载用同一个文件夹里的 `restore_original.bat`。打包的资源包只适用于当前版本的游戏（2026 年 10 月）。
 
@@ -56,16 +60,34 @@ The source contains no game files; a prebuilt package for the current game versi
    python -P -E scripts/frogify.py patches frogmod/build/patches
    ```
 
-4. （可选）检查生成结果：
+4. 生成待机大笑和对话、背包头像（要在上一步之后运行，它会把这几个资源包加进 `bundles.txt`）。
+   待机大笑的画面和笑声是从奶蛙大笑的视频（1280×720）里切出来的，仓库里没有这个视频；
+   有视频的话先切帧，没有的话跳过这一条，下一步就只换头像：
+
+   ```bash
+   python -P -E scripts/laugh_frames.py 奶蛙大笑.mp4 frogmod/laugh
+   ```
+
+   ```bash
+   python -P -E scripts/frog_extras.py frogmod/build
+   ```
+
+5. （可选）检查生成结果：
 
    ```bash
    python -P -E scripts/verify_frog_bundle.py frogmod/build/team17_auto_base_characters_compressed_assets_player.bundle check.png 40
+   ```
+
+   ```bash
+   python -P -E scripts/verify_extras.py frogmod/build
    ```
 
 ### 安装 / 卸载
 
 - 安装：**先退出游戏**，双击 `frogmod/install_frog.bat`。游戏不在默认位置时，把游戏文件夹拖到这个 bat 文件上。
   第一次安装会把原版文件备份到 `frogmod/backup/`。
+- 为了放笑声，安装还会改 `Carpenter_Data/globalgamemanagers` 里的一个开关，打开 Unity 自带的声音系统
+  （游戏本身的声音走 FMOD，原本把 Unity 的声音关掉了）。这个文件同样会备份；游戏版本对不上时不改，只是没有笑声。
 - 卸载：退出游戏，双击 `frogmod/restore_original.bat`，恢复原版主角。
 - 游戏更新后：先卸载，删掉 `frogmod/backup/`，再重新生成和安装。`_dump/` 里的数据对应当前版本，
   更新后补丁资源包的文件名可能会变，需要用 `scripts/` 里的扫描脚本重新生成。
@@ -77,6 +99,7 @@ The source contains no game files; a prebuilt package for the current game versi
 1. `scripts/cutout.py`：去掉白底，得到 `frogmod/frog_cutout.png`。
 2. `scripts/frog_parts.py`：切成身体、手臂、腿等图层。
 3. `scripts/frog_views.py`：从 `frogmod/source/` 里的三视图和表情包生成正面、背面和「惊鸿一瞥」的头。
+4. 对话头像来自 `frogmod/source/frog_thinking.png`，`scripts/frog_extras.py` 去掉白底后裁成头像。
 
 ## CE 修改表
 
@@ -97,6 +120,7 @@ The source contains no game files; a prebuilt package for the current game versi
 |---|---|
 | `SilverPines.CT` | CE 修改表 |
 | `scripts/frogify.py` | 奶蛙 mod 生成器（主程序） |
+| `scripts/frog_extras.py`, `laugh_frames.py` | 待机大笑（切视频帧、动画、笑声）、对话和背包头像、打开 Unity 声音 |
 | `scripts/frog_parts.py`, `frog_views.py`, `cutout.py` | 从奶蛙原图生成图层 |
 | `scripts/clip_map.py`, `clip_curves.py`, `scan_*.py` | 分析游戏动画，生成 `_dump/` 里的数据 |
 | `scripts/verify_*.py`, `showcase.py`, `*_probe.py` | 检查和预览 |
