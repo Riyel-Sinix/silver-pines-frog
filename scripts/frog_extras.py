@@ -41,6 +41,7 @@ from UnityPy.streams import EndianBinaryReader, EndianBinaryWriter
 sys.path.insert(0, os.path.dirname(__file__))
 from frogify import GAME, ORIG_MAIN, ROOT, apply_sprite, source_bundle  # noqa: E402
 from laugh_frames import border_connected, largest  # noqa: E402
+from game_paths import resolve_bundle, source_file  # noqa: E402
 
 CLIPS = "team17_auto_base_characters_assets_player.bundle"
 PORTRAITS = "sprites-characterportraits_assets_all.bundle"
@@ -545,6 +546,7 @@ PHOTOS = [
     ("critical", "team17_auto_base_general_compressed_assets_critical.bundle", "critical_reaper.png",
      ("pad_band", 240)),                                                   # 重伤 below 25 %
 ]
+PHOTOS = [(name, resolve_bundle(fn), meme, fit) for name, fn, meme, fit in PHOTOS]
 
 
 def fit_photo(src, fit):
@@ -642,7 +644,7 @@ def build_newgame_unmirror(out_path):
 # ---------------------------------------------------------------- Unity audio
 def build_audio_switch(out_path):
     """globalgamemanagers with AudioManager.m_DisableAudio cleared: one byte, located by re-serializing."""
-    src = BACKUP_GGM if os.path.exists(BACKUP_GGM) else os.path.join(GAME, GGM)
+    src = source_file(GGM)
     data = bytearray(open(src, "rb").read())
     env = UnityPy.load(src)
     am = next(o for o in env.objects if o.type == ClassIDType.AudioManager)

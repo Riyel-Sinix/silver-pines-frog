@@ -11,6 +11,7 @@
 {$lua}
 if syntaxcheck then return end
 -- Silver Pines (Unity 6000.3.15f1, IL2CPP) / Carpenter.exe
+-- Static compatibility checked against the Steam build on 2026-10-19 (metadata v39).
 -- Resolves every address by signature and validates IL2CPP class names before anything is written.
 local MOD = 'GameAssembly.dll'
 if getOpenedProcessID() == 0 or getAddressSafe(MOD) == nil then
@@ -324,6 +325,8 @@ if SP ~= nil and SP.flag ~= nil then SP.flag('GDC', 5, false) end
   </CheatEntries>
   <UserdefinedSymbols/>
   <Comments>Silver Pines（Carpenter.exe，Unity 6000.3.15f1 IL2CPP）修改表
+
+2026-10-19：已对 Steam 新版完成离线特征码、指令和字段布局核验；新版尚未进行游戏内验证。
 
 用法：
 1. 先启动游戏，等到主菜单。

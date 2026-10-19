@@ -30,6 +30,7 @@
 /frogmod/*
 !/frogmod/install_frog.bat
 !/frogmod/restore_original.bat
+!/frogmod/manage_frog.ps1
 !/frogmod/frog_source.png
 !/frogmod/frog_cutout.png
 !/frogmod/source/

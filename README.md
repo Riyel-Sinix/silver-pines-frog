@@ -35,16 +35,17 @@ The source contains no game files; a prebuilt package for the current game versi
 ### 直接下载
 
 到 [Releases](https://github.com/Riyel-Sinix/silver-pines-frog/releases) 下载最新的 `silver-pines-frog-v*.zip`，解压后**先退出游戏**，
-双击 `install_frog.bat`。游戏不在 `D:\Games\Silver Pines` 的话，把游戏文件夹拖到这个 bat 文件上。
-卸载用同一个文件夹里的 `restore_original.bat`。打包的资源包只适用于当前版本的游戏（2026 年 10 月）。
+双击 `install_frog.bat`。默认查找 `D:\SteamLibrary\steamapps\common\Silver Pines`，也会查找其他 Steam 库；
+找不到时，把游戏文件夹拖到这个 bat 文件上。卸载用同一个文件夹里的 `restore_original.bat`。
+v7 对应 Steam build **25964535**（Unity 6000.3.15f1）；安装前校验程序、原版资源及模组资源的 SHA256。
 
-从旧版本升级：把新版解压到旧版的同一个文件夹里覆盖（保留里面的 `backup` 文件夹），再运行 `install_frog.bat`；
-或者先用旧版的 `restore_original.bat` 卸载。如果在新文件夹里直接安装，已经是 mod 版的文件就没有原版可以备份，
-脚本会提示，以后卸载时还要在 Steam 里「验证游戏文件的完整性」。
+从 v6 或更早版本升级：游戏更新前，先用旧版卸载。游戏已经更新或重新下载过时，先在 Steam 里
+「验证游戏文件的完整性」，再安装 v7。请保留旧备份；v7 会在 `backup/versions/` 单独保存与当前游戏匹配的原版。
 
 ### 自己生成
 
-源码里没有游戏文件，也可以用你自己的游戏生成 mod（约 13 分钟）。游戏更新后只能用这种方式。
+源码里没有游戏文件，也可以用你自己的原版游戏生成 mod（约 13 分钟）。生成器会重新扫描当前版本的动画和补丁资源名，
+并生成安装器使用的 `manifest.json`；检测到已安装奶蛙且没有对应的原版备份时会停止。
 
 1. 安装 Python 3.12 和依赖：
 
@@ -52,39 +53,29 @@ The source contains no game files; a prebuilt package for the current game versi
    pip install -r requirements.txt
    ```
 
-2. 游戏不在 `D:\Games\Silver Pines` 的话，先在命令提示符里设置环境变量 `SILVER_PINES`，指向游戏文件夹（里面有 `Carpenter.exe`）：
+2. 一次生成完整资源包；`--game` 指向包含 `Carpenter.exe` 的原版游戏文件夹：
 
    ```bat
-   set SILVER_PINES=C:\Program Files (x86)\Steam\steamapps\common\Silver Pines
+   python -P -E scripts/build_frog.py --game "D:\SteamLibrary\steamapps\common\Silver Pines"
    ```
 
-3. 生成主资源包和补丁资源包：
+   已有 `frogmod/build/` 时，先将其改名保留，或用 `--output frogmod/build_new` 指定空目录；
+   安装器读取的是 `frogmod/build/`。也可以设置环境变量 `SILVER_PINES` 供单独的扫描、生成及检查脚本使用。
 
-   ```bash
-   python -P -E scripts/frogify.py main frogmod/build/team17_auto_base_characters_compressed_assets_player.bundle
-   ```
-
-   ```bash
-   python -P -E scripts/frogify.py patches frogmod/build/patches
-   ```
-
-4. 生成待机大笑、对话头像、难度图和背包照片（要在上一步之后运行，它会把这几个资源包加进 `bundles.txt`）。
-   待机大笑的画面和笑声是从奶蛙大笑的视频（1280×720）里切出来的，仓库里没有这个视频；
-   有视频的话先切帧，没有的话跳过这一条，下一步就只换头像：
+3. 待机大笑的画面和笑声来自奶蛙大笑的视频（1280×720），仓库里没有这个视频。
+   有视频时，在构建前先切帧；没有时构建器会跳过大笑，仍生成主角、头像及照片：
 
    ```bash
    python -P -E scripts/laugh_frames.py 奶蛙大笑.mp4 frogmod/laugh
    ```
 
-   ```bash
-   python -P -E scripts/frog_extras.py frogmod/build
-   ```
-
-5. （可选）检查生成结果：
+4. （可选）检查生成结果；使用其他游戏目录时，先设置 `SILVER_PINES`：
 
    ```bash
-   python -P -E scripts/verify_frog_bundle.py frogmod/build/team17_auto_base_characters_compressed_assets_player.bundle check.png 40
+   python -P -E scripts/verify_frog_bundle.py frogmod/build/team17_auto_base_characters_compressed_assets_player.bundle check.png 40 "原版主角.bundle"
    ```
+
+   `原版主角.bundle` 指当前版本的原始主角 bundle；可在安装前从游戏目录复制一份。
 
    ```bash
    python -P -E scripts/verify_extras.py frogmod/build
@@ -93,13 +84,14 @@ The source contains no game files; a prebuilt package for the current game versi
 ### 安装 / 卸载
 
 - 安装：**先退出游戏**，双击 `frogmod/install_frog.bat`。游戏不在默认位置时，把游戏文件夹拖到这个 bat 文件上。
-  第一次安装会把原版文件备份到 `frogmod/backup/`。
+  第一次安装会把原版文件备份到 `frogmod/backup/versions/`，按版本及安装位置隔离。Windows 自带的 PowerShell 执行安装，
+  使用发行包不需要 Python；请保留与 bat 同目录的 `manage_frog.ps1`。
 - 为了放笑声，安装还会改 `Carpenter_Data/globalgamemanagers` 里的一个开关，打开 Unity 自带的声音系统
-  （游戏本身的声音走 FMOD，原本把 Unity 的声音关掉了）。这个文件同样会备份；游戏版本对不上时不改，只是没有笑声。
+  （游戏本身的声音走 FMOD，原本把 Unity 的声音关掉了）。这个文件基于新版原版生成并备份；版本或资源校验失败时，整个安装停止。
   所以笑声不受游戏里的音量设置影响。
 - 卸载：退出游戏，双击 `frogmod/restore_original.bat`，恢复原版主角。
-- 游戏更新后：先卸载，删掉 `frogmod/backup/`，再重新生成和安装。`_dump/` 里的数据对应当前版本，
-  更新后补丁资源包的文件名可能会变，需要用 `scripts/` 里的扫描脚本重新生成。
+- 游戏更新前先卸载。已经更新后，不要用旧版卸载器覆盖新版文件；v7 卸载器会拒绝不匹配的备份。
+  在 Steam 验证原版后，重新运行 `build_frog.py` 生成并安装；旧备份可以保留。
 
 ### 改奶蛙的图
 
@@ -124,6 +116,7 @@ The source contains no game files; a prebuilt package for the current game versi
 电器电量不减、花钱不减少、修改金钱、地图全显示、万能钥匙。
 
 所有地址都靠特征码查找，并在写入前校验 IL2CPP 类名；游戏版本对不上时会直接提示，不会乱改内存。
+已对 Steam build 25964535 做离线核验：8 个特征均唯一，所用字段布局不变。新版游戏内功能仍需实测。
 
 ## 目录
 
@@ -131,6 +124,8 @@ The source contains no game files; a prebuilt package for the current game versi
 |---|---|
 | `SilverPines.CT` | CE 修改表 |
 | `scripts/frogify.py` | 奶蛙 mod 生成器（主程序） |
+| `scripts/build_frog.py`, `refresh_game_data.py`, `game_paths.py` | 完整构建、刷新当前游戏索引、按版本选择原版资源 |
+| `frogmod/manage_frog.ps1` | 校验版本、备份、安装和卸载 |
 | `scripts/frog_extras.py`, `laugh_frames.py` | 待机大笑（切视频帧、动画、笑声）、对话头像、难度图和背包照片、打开 Unity 声音 |
 | `scripts/frog_parts.py`, `frog_views.py`, `cutout.py` | 从奶蛙原图生成图层 |
 | `scripts/clip_map.py`, `clip_curves.py`, `scan_*.py` | 分析游戏动画，生成 `_dump/` 里的数据 |

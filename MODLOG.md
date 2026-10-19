@@ -242,3 +242,31 @@
 - Build: `frog_extras.py` ~8 s; `verify_extras.py`: each photo bundle changes only its Texture2D, the scene one
   byte. Installed 2026-10-19: main + 216 patch bundles + globalgamemanagers; the six bundles touched for the
   first time were backed up (equal to the game's files before the install).
+
+## Frog v7 (2026-10-19) — Steam build 25964535 compatibility
+- Target: `D:\SteamLibrary\steamapps\common\Silver Pines`, app 2333000, depot 2333001,
+  manifest 8784396639484429591, Unity 6000.3.15f1, metadata v39. The user reinstalled the pristine Steam
+  version during this work; all later source checks use that installation.
+- All 217 source bundles (main + 216 patches) match the current Steam depot's SHA1 and size and the legacy
+  original backups' SHA256. Reuse the existing v6 mod bundles unchanged; no redraw is needed. New catalog.bin
+  is retained (9125368 bytes). New globalgamemanagers is 442468 bytes instead of 442420; regenerate its audio
+  flag from the new original (only byte 5752 changes). Never copy the old globalgamemanagers into Steam.
+- `game_paths.py` selects the Steam directory or SILVER_PINES and accepts originals only from versioned
+  backups bound to the same game code, metadata, installation path and source/output file hashes. Legacy
+  unbound backups are not selected. `refresh_game_data.py` refreshes indices from the selected originals;
+  its success marker includes the current Addressables catalog identity. `build_frog.py` builds everything
+  into an empty output directory and writes build/manifest.json. Patch photo names can resolve new hash suffixes.
+- The bat launchers use Windows PowerShell (no Python needed for installation). manage_frog.ps1 checks all
+  source/output hashes and game identities before installing, uses isolated backup/versions directories,
+  and rolls back failed resource replacement. Restore also rejects unknown/updated files.
+- CE: all 8 signatures remain unique; 5 developer RVAs moved and patterns.json now records the new locations.
+  The table still dynamically scans. aobcheck additionally checks executable sections, enclosing methods,
+  TypeInfo references, patch bytes and instruction boundaries; 14 dependent fields are unchanged. See
+  docs/steam-25964535-validation.md for addresses and hashes; the new local dump is _dump/new_20261019/.
+- Verification: main 1929 sprites, 1866 redrawn quads valid, 60 untouched tight sprites, 3 unchanged original
+  weapon/effect quads; 215 patch bundles excluding the separately checked laugh bundle: zero problems.
+  verify_extras confirms 197 laugh frames, 16.42 s, decoded sound, 396 new preload references resolved,
+  expected portrait/photo/scene changes and the one-byte new audio flag. 14 installer fixture tests pass.
+- Installed 218 files to Steam, restored and verified all 218 against the official SHA1, then reinstalled
+  and verified all outputs. Original backup: frogmod/backup/versions/b14b782f7c24e15b-fe22b65fd867-67f2df37/.
+  Prior build retained as frogmod/build_v6_before_steam_25964535/. Game has not been launched for runtime testing.

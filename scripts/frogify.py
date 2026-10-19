@@ -26,14 +26,12 @@ import UnityPy
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
 from UnityPy.enums import TextureFormat
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))).replace("\\", "/")  # the repository
-GAME = os.environ.get("SILVER_PINES", r"D:/Games/Silver Pines")  # the game folder; set SILVER_PINES if elsewhere
-AA = GAME + "/Carpenter_Data/StreamingAssets/aa/StandaloneWindows64"
-MAIN = "team17_auto_base_characters_compressed_assets_player.bundle"
-ORIG_MAIN = ROOT + "/frogmod/backup/" + MAIN
-if not os.path.exists(ORIG_MAIN):  # mod not installed yet: the game folder still holds the original
-    ORIG_MAIN = AA + "/" + MAIN
-PATCH_INDEX = ROOT + "/_dump/patch_bundle_sprites.txt"
+sys.path.insert(0, os.path.dirname(__file__))
+from game_paths import AA, DUMP, GAME, MAIN, ROOT as ROOT_PATH, source_bundle  # noqa: E402
+
+ROOT = ROOT_PATH.as_posix()
+ORIG_MAIN = source_bundle(MAIN)
+PATCH_INDEX = str(DUMP / "patch_bundle_sprites.txt")
 PARTS_DIR = ROOT + "/frogmod/parts"
 BACKUP_PATCHES = ROOT + "/frogmod/backup/patches"
 
@@ -597,7 +595,7 @@ def render_body(tree, img, group, name, counts):
 # The body sprite's SpriteAnimNodes are keyed per frame in the AnimationClips (scripts/clip_curves.py ->
 # _dump/sprite_nodes.json). Node 6 is the weapon grip, where the game draws the wielded weapon: pixels from the
 # sprite pivot, y down, angle in degrees in the same y-down space.
-NODES_PATH = ROOT + "/_dump/sprite_nodes.json"
+NODES_PATH = str(DUMP / "sprite_nodes.json")
 NODES = {}
 NEAR_SHOULDER, FAR_SHOULDER = (57.0, 46.0), (46.0, 50.0)  # cut-out px (the cut-out faces left)
 ARM_LEN = (42.0, 30.0)            # upper arm, forearm (cut-out px)
@@ -1296,12 +1294,6 @@ def pairs(previews, groups, path, scale=0.4):
     out = out.resize((max(1, int(out.width * scale)), max(1, int(out.height * scale))), Image.LANCZOS)
     out.save(path)
     print("pairs", path, out.size)
-
-
-def source_bundle(fn):
-    """Original copy of a patch bundle: the backup once the mod is installed, else the game folder."""
-    backup = os.path.join(BACKUP_PATCHES, fn)
-    return backup if os.path.exists(backup) else os.path.join(AA, fn)
 
 
 def player_patch_bundles(pidx):

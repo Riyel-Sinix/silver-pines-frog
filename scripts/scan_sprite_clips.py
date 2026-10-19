@@ -8,7 +8,7 @@ import sys
 import UnityPy
 
 sys.path.insert(0, os.path.dirname(__file__))
-from clip_map import AA, cab_of, compress, sprite_map  # noqa: E402
+from clip_map import AA, cab_of, compress, source_bundle, sprite_map  # noqa: E402
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
         if not fn.endswith(".bundle"):
             continue
         try:
-            env = UnityPy.load(os.path.join(AA, fn))
+            env = UnityPy.load(source_bundle(fn))
         except Exception:  # noqa: BLE001
             continue
         clips = [o for o in env.objects if o.type.name == "AnimationClip"]

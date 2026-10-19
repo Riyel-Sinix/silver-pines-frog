@@ -17,7 +17,7 @@ import numpy as np
 import UnityPy
 
 sys.path.insert(0, os.path.dirname(__file__))
-from clip_map import AA, CLIPS_MAIN, ROOT, cab_of, sprite_map  # noqa: E402
+from clip_map import AA, CLIPS_MAIN, DUMP, cab_of, source_bundle, sprite_map  # noqa: E402
 
 SPRITE_PATH = zlib.crc32(b"Sprite")
 NODE_ATTRS = {zlib.crc32(f"m_node{i}.{c}".encode()): (f"n{i}", c) for i in range(10) for c in "xy"}
@@ -83,20 +83,20 @@ def evaluate(keys, t):
 def main():
     smap = sprite_map()
     bundles = [CLIPS_MAIN]
-    for line in open(ROOT + "/_dump/scan_clips.txt", encoding="utf-8"):
+    for line in open(DUMP / "scan_clips.txt", encoding="utf-8"):
         fn = line.split(" ", 1)[0]
         if fn.startswith("team17_auto_patch") and "Player_" in line:
             bundles.append(fn)
     # clips found by scan_sprite_clips.py in any bundle (the debug-named bundles are loaded by the game too)
     import re as _re
-    for fn in _re.findall(r"\[([^\]]+)\]", open(ROOT + "/_dump/all_player_clips.txt", encoding="utf-8").read()):
+    for fn in _re.findall(r"\[([^\]]+)\]", open(DUMP / "all_player_clips.txt", encoding="utf-8").read()):
         full = [f for f in os.listdir(AA) if f.startswith(fn)]
         if len(full) == 1 and full[0] not in bundles:
             bundles.append(full[0])
     samples = defaultdict(lambda: defaultdict(list))  # sprite -> node -> [(x, y, a)]
     clips_used = 0
     for fn in bundles:
-        env = UnityPy.load(os.path.join(AA, fn))
+        env = UnityPy.load(source_bundle(fn))
         cab = cab_of(env).lower()
         for o in env.objects:
             if o.type.name != "AnimationClip":

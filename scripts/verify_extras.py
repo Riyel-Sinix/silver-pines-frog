@@ -17,6 +17,7 @@ from clip_curves import decode  # noqa: E402
 from frog_extras import (BACKUP_GGM, CLIPS, GAME, GGM, LAUGH_STATE, PHOTOS, PORTRAITS, SYSTEM_MENU,  # noqa: E402
                          TEMPLATE, action_params, stable_id)
 from frogify import source_bundle  # noqa: E402
+from game_paths import source_file  # noqa: E402
 
 
 def check_clips(path, preview):
@@ -91,7 +92,7 @@ def check_scene(path, fn):
 
 
 def check_audio_switch(path):
-    src = BACKUP_GGM if os.path.exists(BACKUP_GGM) else os.path.join(GAME, GGM)
+    src = source_file(GGM)
     a, b = open(src, "rb").read(), open(path, "rb").read()
     diff = [i for i in range(min(len(a), len(b))) if a[i] != b[i]]
     am = next(o for o in UnityPy.load(path).objects if o.type == ClassIDType.AudioManager).read_typetree()

@@ -11,10 +11,9 @@ from collections import defaultdict
 
 import UnityPy
 
-GAME = os.environ.get("SILVER_PINES", r"D:/Games/Silver Pines")  # the game folder; set SILVER_PINES if elsewhere
-AA = GAME + "/Carpenter_Data/StreamingAssets/aa/StandaloneWindows64"
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))).replace("\\", "/")  # the repository
-MAIN = "team17_auto_base_characters_compressed_assets_player.bundle"
+sys.path.insert(0, os.path.dirname(__file__))
+from game_paths import AA, DUMP, MAIN, ROOT as ROOT_PATH, source_bundle  # noqa: E402
+ROOT = ROOT_PATH.as_posix()
 CLIPS_MAIN = "team17_auto_base_characters_assets_player.bundle"
 PATHS = {zlib.crc32(p.encode()): p or "<root>" for p in (
     "", "Sprite", "Flip/Arm Sprite", "Flip", "AnimRoot", "AnimRoot/AnimRoot_Flip",
@@ -30,9 +29,9 @@ def cab_of(env):
 def sprite_map():
     """{(cab, path_id): (name, bundle)} for the player bundle and every patch bundle with sprites."""
     out = {}
-    fns = [MAIN] + [l.split(" ", 1)[0] for l in open(ROOT + "/_dump/patch_bundle_sprites.txt", encoding="utf-8")]
+    fns = [MAIN] + [l.split(" ", 1)[0] for l in open(DUMP / "patch_bundle_sprites.txt", encoding="utf-8")]
     for fn in fns:
-        env = UnityPy.load(os.path.join(AA, fn))
+        env = UnityPy.load(source_bundle(fn))
         cab = cab_of(env).lower()
         for o in env.objects:
             if o.type.name == "Sprite":
@@ -58,13 +57,13 @@ def main():
     smap = sprite_map()
     print("sprites mapped", len(smap))
     clip_bundles = [CLIPS_MAIN]
-    for line in open(ROOT + "/_dump/scan_clips.txt", encoding="utf-8"):
+    for line in open(DUMP / "scan_clips.txt", encoding="utf-8"):
         fn = line.split(" ", 1)[0]
         if fn.startswith("team17_auto_patch") and "Player_" in line:
             clip_bundles.append(fn)
     rows, data = [], {}
     for fn in clip_bundles:
-        env = UnityPy.load(os.path.join(AA, fn))
+        env = UnityPy.load(source_bundle(fn))
         for o in env.objects:
             if o.type.name != "AnimationClip":
                 continue

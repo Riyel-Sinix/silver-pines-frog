@@ -1,6 +1,6 @@
 """Verify a rebuilt player bundle: every full-rect sprite mesh must cover its texture exactly.
 
-usage: python -P -E verify_frog_bundle.py <bundle> <sheet.png> [sample_count]
+usage: python -P -E verify_frog_bundle.py <bundle> <sheet.png> [sample_count] [original.bundle]
 """
 import random
 import struct
@@ -13,8 +13,11 @@ from PIL import Image, ImageDraw
 def main():
     env = UnityPy.load(sys.argv[1])
     by_id = {o.path_id: o for o in env.objects}
+    originals = ({o.path_id: o for o in UnityPy.load(sys.argv[4]).objects} if len(sys.argv) > 4 else {})
+    if originals and set(originals) != set(by_id):
+        raise ValueError("The rebuilt bundle has a different object set")
     n_sample = int(sys.argv[3]) if len(sys.argv) > 3 else 40
-    bad, quads, tight, total = [], 0, 0, 0
+    bad, quads, tight, total, unchanged_quads = [], 0, 0, 0, 0
     sample = []
     for o in env.objects:
         if o.type.name != "Sprite":
@@ -25,6 +28,10 @@ def main():
         vd = rd["m_VertexData"]
         if vd["m_VertexCount"] != 4:
             tight += 1
+            continue
+        if originals and o.get_raw_data() == originals[o.path_id].get_raw_data():
+            # Original weapon/effect quads can use packed UVs; only redrawn geometry must be full-rect.
+            unchanged_quads += 1
             continue
         quads += 1
         data = bytes(vd["m_DataSize"])
@@ -42,7 +49,7 @@ def main():
         if not ok:
             bad.append(t["m_Name"])
         sample.append((t["m_Name"], tex, t))
-    print(f"sprites={total} full-rect={quads} untouched-tight={tight} bad={len(bad)} {bad[:10]}")
+    print(f"sprites={total} full-rect={quads} untouched-tight={tight} unchanged-quads={unchanged_quads} bad={len(bad)} {bad[:10]}")
     random.seed(7)
     picks = random.sample(sample, min(n_sample, len(sample)))
     tiles = []
@@ -66,6 +73,8 @@ def main():
         sheet.paste(tile, ((i % cols) * 300, (i // cols) * 300 + 300 - tile.height))
     sheet.save(sys.argv[2])
     print("sheet", sys.argv[2], sheet.size, "problems:", bad[:10])
+    if bad:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
