@@ -3,7 +3,8 @@
 单机游戏 **Silver Pines**（Wych Elm / Team17，Unity 6000.3.15f1，IL2CPP）的两个 mod：
 
 - **奶蛙主角**：把主角换成胖胖的黄色奶蛙，走路、跑步、举枪、近战、游泳、攀爬都有对应动作，待机时会做「惊鸿一瞥」表情，
-  站着不动 10 秒还会哈哈大笑、笑倒在地上打滚（带笑声），对话和背包里的主角头像也换成了奶蛙。
+  站着不动 10 秒还会哈哈大笑、笑倒在地上打滚（带笑声），对话头像、新建游戏的难度图和背包里随受伤变化的照片
+  也换成了奶蛙表情包。
 - **Cheat Engine 修改表**：无敌、无限弹药、一击必杀等 12 项功能，给手残党用。
 
 *A frog ("奶蛙") player-model replacement and a Cheat Engine table for the single-player game Silver Pines.
@@ -26,7 +27,10 @@ The source contains no game files; a prebuilt package for the current game versi
 - 站着待机时每个循环（约 3 秒）斜眼瞥一次「惊鸿一瞥」。
 - 站着不动 10 秒，奶蛙会转过来哈哈大笑、笑倒在地上打滚，大约 16 秒后站起来，带笑声；中途走开笑声就停。
   受伤、中毒时的待机不会笑。
-- 对话（包括打电话）里主角的头像、背包（状态页）拍立得里的照片，都换成奶蛙托腮思考的表情包。
+- 对话（包括打电话）里主角的头像换成奶蛙托腮思考的表情包。
+- 新建游戏选难度时的图：轻松自在大笑、紧张刺激思考、生存恐怖哭、噩梦「切换早八模式」。
+- 背包（状态页）拍立得里的照片跟着受伤程度变：没事大笑、轻伤「切换恶魔模式」、负伤「切换早八模式」、
+  重伤「切换死神形态」（游戏本来就让难度图和受伤照片共用几张图）。
 
 ### 直接下载
 
@@ -64,7 +68,7 @@ The source contains no game files; a prebuilt package for the current game versi
    python -P -E scripts/frogify.py patches frogmod/build/patches
    ```
 
-4. 生成待机大笑和对话、背包头像（要在上一步之后运行，它会把这几个资源包加进 `bundles.txt`）。
+4. 生成待机大笑、对话头像、难度图和背包照片（要在上一步之后运行，它会把这几个资源包加进 `bundles.txt`）。
    待机大笑的画面和笑声是从奶蛙大笑的视频（1280×720）里切出来的，仓库里没有这个视频；
    有视频的话先切帧，没有的话跳过这一条，下一步就只换头像：
 
@@ -105,6 +109,8 @@ The source contains no game files; a prebuilt package for the current game versi
 2. `scripts/frog_parts.py`：切成身体、手臂、腿等图层。
 3. `scripts/frog_views.py`：从 `frogmod/source/` 里的三视图和表情包生成正面、背面和「惊鸿一瞥」的头。
 4. 对话头像来自 `frogmod/source/frog_thinking.png`，`scripts/frog_extras.py` 去掉白底后裁成头像。
+5. 难度图和背包照片来自 `frogmod/source/photos/`，`scripts/frog_extras.py` 的 `PHOTOS` 写着每张表情包换掉游戏里的
+   哪张图、怎么裁。
 
 ## CE 修改表
 
@@ -125,7 +131,7 @@ The source contains no game files; a prebuilt package for the current game versi
 |---|---|
 | `SilverPines.CT` | CE 修改表 |
 | `scripts/frogify.py` | 奶蛙 mod 生成器（主程序） |
-| `scripts/frog_extras.py`, `laugh_frames.py` | 待机大笑（切视频帧、动画、笑声）、对话和背包头像、打开 Unity 声音 |
+| `scripts/frog_extras.py`, `laugh_frames.py` | 待机大笑（切视频帧、动画、笑声）、对话头像、难度图和背包照片、打开 Unity 声音 |
 | `scripts/frog_parts.py`, `frog_views.py`, `cutout.py` | 从奶蛙原图生成图层 |
 | `scripts/clip_map.py`, `clip_curves.py`, `scan_*.py` | 分析游戏动画，生成 `_dump/` 里的数据 |
 | `scripts/verify_*.py`, `showcase.py`, `*_probe.py` | 检查和预览 |

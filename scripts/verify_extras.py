@@ -1,7 +1,8 @@
 """Check what frog_extras.py built by reading it back: the laugh clip's frame order and length, the sprites, the
 sound (decoded through the bundle's .resource node with FMOD), the edited PlayMaker template, the preload table
 (only the template's range may change) and that no other original object changed; the dialogue portraits and the
-backpack photo (only their textures change); the audio flag.
+health / difficulty photos (only their textures change); the new-game page's photo scale (one byte); the audio
+flag.
 
 usage: python -P -E verify_extras.py <build_dir> [<preview_dir>]
 """
@@ -13,8 +14,8 @@ from UnityPy.enums import ClassIDType
 
 sys.path.insert(0, os.path.dirname(__file__))
 from clip_curves import decode  # noqa: E402
-from frog_extras import (BACKUP_GGM, CLIPS, GAME, GGM, LAUGH_STATE, PORTRAITS, STATUS, TEMPLATE,  # noqa: E402
-                         action_params, stable_id)
+from frog_extras import (BACKUP_GGM, CLIPS, GAME, GGM, LAUGH_STATE, PHOTOS, PORTRAITS, SYSTEM_MENU,  # noqa: E402
+                         TEMPLATE, action_params, stable_id)
 from frogify import source_bundle  # noqa: E402
 
 
@@ -72,6 +73,23 @@ def check_textures(path, fn, preview):
             o.read().image.save(os.path.join(preview, o.read().m_Name + ".png"))
 
 
+def check_scene(path, fn):
+    """Every object of every serialized file byte for byte, except the new-game photo's RectTransform."""
+    new, orig = UnityPy.load(path), UnityPy.load(source_bundle(fn))
+    for name, f in orig.file.files.items():
+        if not hasattr(f, "objects"):
+            continue
+        g = new.file.files[name]
+        for pid, o in f.objects.items():
+            a, b = o.get_raw_data(), g.objects[pid].get_raw_data()
+            if a != b:
+                diff = [(i, a[i], b[i]) for i in range(min(len(a), len(b))) if a[i] != b[i]]
+                print(f"{fn}: {o.type.name} {pid} changed {diff}, m_LocalScale "
+                      f"{g.objects[pid].read_typetree().get('m_LocalScale')}")
+        if set(f.objects) != set(g.objects):
+            print(f"{fn}: object set differs in {name}")
+
+
 def check_audio_switch(path):
     src = BACKUP_GGM if os.path.exists(BACKUP_GGM) else os.path.join(GAME, GGM)
     a, b = open(src, "rb").read(), open(path, "rb").read()
@@ -90,8 +108,9 @@ def main():
     if os.path.exists(clips):
         check_clips(clips, preview)
         check_audio_switch(os.path.join(build, "globalgamemanagers"))
-    for fn in (PORTRAITS, STATUS):
+    for fn in [PORTRAITS] + [fn for _, fn, _, _ in PHOTOS]:
         check_textures(os.path.join(build, "patches", fn), fn, preview)
+    check_scene(os.path.join(build, "patches", SYSTEM_MENU), SYSTEM_MENU)
 
 
 if __name__ == "__main__":

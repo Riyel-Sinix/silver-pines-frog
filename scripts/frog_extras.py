@@ -10,10 +10,13 @@ protagonist's dialogue portrait, and Unity's own audio switched on so the laugh 
 - The game plays all its sound through FMOD and ships with Unity audio disabled
   (globalgamemanagers: AudioManager.m_DisableAudio), so that one flag is cleared.
 - portrait_Player* (the face shown next to the protagonist's lines, e.g. on the phone) become the thinking frog.
+- The protagonist's photos (Assets/UI/Health: the new-game page's difficulty pictures and the backpack's photo
+  for each health state) become the memes in frogmod/source/photos, and the new-game page stops mirroring its
+  photo so their captions read the right way round.
 
 usage: python -P -E frog_extras.py <build_dir>
-  writes <build_dir>/patches/<clip bundle>, <build_dir>/patches/<portrait bundle> (added to bundles.txt) and
-  <build_dir>/globalgamemanagers. Run it after `frogify.py patches`, which rewrites bundles.txt.
+  writes <build_dir>/patches/<clip bundle>, the portrait, photo and system-menu bundles (all added to
+  bundles.txt) and <build_dir>/globalgamemanagers. Run it after `frogify.py patches`, which rewrites bundles.txt.
 """
 import copy
 import hashlib
@@ -41,8 +44,8 @@ from laugh_frames import border_connected, largest  # noqa: E402
 
 CLIPS = "team17_auto_base_characters_assets_player.bundle"
 PORTRAITS = "sprites-characterportraits_assets_all.bundle"
-STATUS = "team17_auto_base_general_compressed_assets_health.bundle"   # backpack (status page) UI art
-STATUS_PHOTO = "fine"    # the protagonist's photo in the backpack's polaroid (InGameMenu/.../PhotoMask/Portrait)
+STATUS = "team17_auto_base_general_compressed_assets_health.bundle"   # the "fine" photo and the polaroid frame
+SYSTEM_MENU = "scenes-menus_scenes_menuscenes_systemmenu.bundle"      # main menu scene with the new-game page
 GGM = "Carpenter_Data/globalgamemanagers"
 BACKUP_GGM = ROOT + "/frogmod/backup/globalgamemanagers"
 TEMPLATE = 5633624329725344446       # Idle_Variants.asset: the standing-idle PlayMaker template
@@ -420,7 +423,6 @@ def build_clips(out_path):
 
 # ---------------------------------------------------------------- portrait
 PORTRAIT_CENTRE_X = 88    # icon x (of 256) put in the middle of the portrait: between the eyes, over the hand
-PHOTO_CENTRE_X = 118      # the backpack photo is nearly square, so it shows more of the body
 PORTRAIT_CORNER = 56      # the icon tile's rounded bottom corners clip the body: refilled within this square
 PORTRAIT_EYES = ((57, 74), (120, 59))  # icon px, for the nightmare variants
 
@@ -460,7 +462,7 @@ def thinking_frog(fill_corners=False):
 def portrait(size, variant, frog, centre_x=PORTRAIT_CENTRE_X):
     """size (w, h) portrait: a close-up of the frog (head, hand on chin, top of the belly) on a dark painted
     backdrop like the game's portraits; the icon's cut-off left, right and bottom edges fall outside the frame.
-    centre_x is the icon x put in the middle (wider frames show more of the frog)."""
+    centre_x is the icon x put in the middle."""
     w, h = size
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
     glow = np.exp(-(((xx - w * 0.55) / (w * 0.6)) ** 2 + ((yy - h * 0.35) / (h * 0.45)) ** 2))
@@ -523,22 +525,118 @@ def build_portraits(out_path):
     print(f"portraits: {len(done)} replaced ({', '.join(sorted(done))}) -> {out_path}")
 
 
-def build_status_photo(out_path):
-    """The protagonist's photo on the backpack (status) page, inside a polaroid: Assets/UI/Health/fine.png."""
-    env = UnityPy.load(source_bundle(STATUS))
-    by = {o.path_id: o for o in env.objects}
-    sprite = next(o for o in env.objects if o.type == ClassIDType.Sprite and o.peek_name() == STATUS_PHOTO)
-    s = sprite.read_typetree()
-    tex = by[s["m_RD"]["texture"]["m_PathID"]].read()
-    rect = s["m_Rect"]
-    if (rect["x"], rect["y"], rect["width"], rect["height"]) != (0.0, 0.0, tex.m_Width, tex.m_Height):
-        raise ValueError(f"{STATUS_PHOTO}: sprite is not the whole texture")
-    tex.set_image(portrait((tex.m_Width, tex.m_Height), "", thinking_frog(), PHOTO_CENTRE_X),
-                  target_format=TextureFormat.RGB24)
-    tex.save()
+# ---------------------------------------------------------------- health and difficulty photos
+PHOTO_DIR = ROOT + "/frogmod/source/photos"
+PHOTO_SIZE = (895, 1000)   # every photo of the protagonist in Assets/UI/Health, RGB24, sprite = whole texture
+# The new-game page shows GameDifficultySettings' sprite for each difficulty; the backpack's polaroid shows
+# HealthStatusSettings' for the current health (100 % 没事 and above 80 % 轻伤: fine, above 50 % 轻伤: injured,
+# above 25 % 负伤: wounded, below: 重伤 critical). fine and wounded are in both lists. Each sprite has a bundle
+# of its own (injured shares one with a TV shader). (sprite, bundle, meme in PHOTO_DIR, fit_photo's fit)
+PHOTOS = [
+    ("fine", STATUS, "fine_laughing.png", ("crop", 234)),                  # 轻松自在; 没事, 轻伤 above 80 %
+    ("Player_difficuly_inquisitive", "team17_auto_patch_general_compressed_assets_player_difficuly_inquisitive_"
+     "5127290ce58e0de594d97a9ed0ae27b7.bundle", "inquisitive_thinking.png", ("crop", 380)),   # 紧张刺激
+    ("Player_difficuly_upset", "team17_auto_patch_general_compressed_assets_player_difficuly_upset_"
+     "f11cff514f194b41cb2192e3fb8f8a89.bundle", "upset_crying.png", ("crop", 420)),           # 生存恐怖
+    ("wounded", "team17_auto_base_general_compressed_assets_wounded.bundle", "wounded_zaoba.png",
+     ("pad_top",)),                                                        # 噩梦; 负伤 25-50 %
+    ("injured", "team17_auto_base_general_compressed_assets_tvdisplayshader.bundle", "injured_demon.png",
+     ("pad_top",)),                                                        # 轻伤 50-80 %
+    ("critical", "team17_auto_base_general_compressed_assets_critical.bundle", "critical_reaper.png",
+     ("pad_band", 240)),                                                   # 重伤 below 25 %
+]
+
+
+def fit_photo(src, fit):
+    """The meme src (RGB) fitted into PHOTO_SIZE, sharpened a little when enlarged. fit:
+    ("crop", x): a meme without a caption keeps its height and loses the sides around source column x;
+    ("pad_top",): a captioned meme keeps its width, and its plain backdrop is extended above the head;
+    ("pad_band", y): a captioned meme whose picture touches the top edge (the reaper's scythe) keeps its width,
+    and its caption band, from source row y down, is lengthened with the text kept in the band's middle."""
+    import cv2
+    w, h = PHOTO_SIZE
+    if fit[0] == "crop":
+        cw = round(src.height * w / h)
+        x0 = min(max(round(fit[1] - cw / 2), 0), src.width - cw)
+        out = src.crop((x0, 0, x0 + cw, src.height)).resize(PHOTO_SIZE, Image.LANCZOS)
+        scale = h / src.height
+    else:
+        scale = w / src.width
+        img = np.asarray(src.resize((w, round(src.height * scale)), Image.LANCZOS)).astype(np.float32)
+        ih = img.shape[0]
+        canvas = np.empty((h, w, 3), np.float32)
+        if fit[0] == "pad_top":
+            pad = h - ih
+            edge = cv2.blur(np.median(img[:6], axis=0)[None], (41, 1))[0]   # the backdrop along the top edge
+            canvas[:pad] = edge
+            canvas[pad:] = img
+            t = np.linspace(0.0, 1.0, 12)[:, None, None]
+            canvas[pad:pad + 12] = edge * (1 - t) + img[:12] * t
+        else:
+            top = round(fit[1] * scale)
+            strip = img[top:]
+            y = top + (h - ih) // 2
+            canvas[:top] = img[:top]
+            canvas[top:y] = np.median(strip[:3].reshape(-1, 3), axis=0)
+            canvas[y:y + len(strip)] = strip
+            canvas[y + len(strip):] = np.median(strip[-3:].reshape(-1, 3), axis=0)
+        out = Image.fromarray(np.clip(canvas + 0.5, 0, 255).astype(np.uint8), "RGB")
+    if scale > 1.5:   # the 300 and 460 px memes: crisp them a little after the enlargement
+        out = out.filter(ImageFilter.UnsharpMask(radius=round(scale), percent=60, threshold=2))
+    return out
+
+
+def build_photos(patches):
+    """Every photo in PHOTOS replaced by its meme; returns the bundles written to patches."""
+    for name, fn, meme, fit in PHOTOS:
+        env = UnityPy.load(source_bundle(fn))
+        by = {o.path_id: o for o in env.objects}
+        s = next(o for o in env.objects if o.type == ClassIDType.Sprite and o.peek_name() == name).read_typetree()
+        tex = by[s["m_RD"]["texture"]["m_PathID"]].read()
+        rect = s["m_Rect"]
+        if (rect["x"], rect["y"], rect["width"], rect["height"]) != (0.0, 0.0, tex.m_Width, tex.m_Height) or \
+                (tex.m_Width, tex.m_Height) != PHOTO_SIZE:
+            raise ValueError(f"{name}: not a {PHOTO_SIZE} photo that fills its texture")
+        tex.set_image(fit_photo(Image.open(os.path.join(PHOTO_DIR, meme)).convert("RGB"), fit),
+                      target_format=TextureFormat.RGB24)
+        tex.save()
+        with open(os.path.join(patches, fn), "wb") as f:
+            f.write(env.file.save(packer="lz4"))
+        print(f"photo {name} <- {meme} -> {fn}")
+    return [fn for _, fn, _, _ in PHOTOS]
+
+
+def build_newgame_unmirror(out_path):
+    """The new-game page shows the difficulty photo mirrored (its RectTransform has scale x = -1), which would
+    turn the memes' captions around: the scale becomes +1, one byte (the float's sign) in the scene file."""
+    env = UnityPy.load(source_bundle(SYSTEM_MENU))
+    scene = max((f for f in env.file.files.values() if hasattr(f, "objects")), key=lambda f: len(f.objects))
+    by = scene.objects
+    pages = []
+    for o in by.values():
+        if o.type == ClassIDType.MonoBehaviour:
+            try:
+                t = o.read_typetree()
+            except Exception:  # noqa: BLE001  (scripts this UnityPy cannot read are not the page)
+                continue
+            if "m_difficultyImage" in t:
+                pages.append(t)
+    if len(pages) != 1:
+        raise ValueError(f"{len(pages)} NewGameMenuPage components in {SYSTEM_MENU}")
+    go = by[by[pages[0]["m_difficultyImage"]["m_PathID"]].read_typetree()["m_GameObject"]["m_PathID"]]
+    rt_obj = next(by[c["component"]["m_PathID"]] for c in go.read_typetree()["m_Component"]
+                  if by[c["component"]["m_PathID"]].type == ClassIDType.RectTransform)
+    rt = rt_obj.read_typetree()
+    if rt["m_LocalScale"]["x"] != -1.0:
+        raise ValueError(f"new-game photo scale is {rt['m_LocalScale']}, expected x = -1")
+    old = rt_obj.get_raw_data()
+    rt["m_LocalScale"]["x"] = 1.0
+    new = rt_obj.save_typetree(rt)   # the new bytes (get_raw_data keeps reading the original stream)
+    if len(old) != len(new) or sum(a != b for a, b in zip(old, new)) != 1:
+        raise ValueError("unexpected RectTransform layout")
     with open(out_path, "wb") as f:
         f.write(env.file.save(packer="lz4"))
-    print(f"backpack photo: {STATUS_PHOTO} {tex.m_Width}x{tex.m_Height} replaced -> {out_path}")
+    print(f"new-game photo no longer mirrored ({go.peek_name()} RectTransform {rt_obj.path_id}) -> {out_path}")
 
 
 # ---------------------------------------------------------------- Unity audio
@@ -570,7 +668,7 @@ def main():
     build = sys.argv[1]
     patches = os.path.join(build, "patches")
     os.makedirs(patches, exist_ok=True)
-    built = [PORTRAITS, STATUS]
+    built = [PORTRAITS]
     if os.path.exists(LAUGH_DIR + "/laugh.json"):
         build_clips(os.path.join(patches, CLIPS))
         build_audio_switch(os.path.join(build, "globalgamemanagers"))
@@ -578,7 +676,9 @@ def main():
     else:  # the frames come from a video that is not in the repository (see laugh_frames.py)
         print(f"no {LAUGH_DIR}/laugh.json: idle laugh and its sound skipped")
     build_portraits(os.path.join(patches, PORTRAITS))
-    build_status_photo(os.path.join(patches, STATUS))
+    built += build_photos(patches)
+    build_newgame_unmirror(os.path.join(patches, SYSTEM_MENU))
+    built.append(SYSTEM_MENU)
     listing = os.path.join(patches, "bundles.txt")
     names = open(listing, encoding="utf-8").read().split() if os.path.exists(listing) else []
     names += [fn for fn in built if fn not in names]

@@ -210,3 +210,35 @@
 - Checked in game by the user (2026-10-18): the laugh, its sound and the dialogue portrait work ("测试结果很棒");
   that session's Player.log shows nothing from the new objects (no class, action or component errors). The
   backpack photo came after that test: installed, not yet seen in game.
+
+## Frog v6 (2026-10-19) — user: the new-game page's four difficulty pictures become memes, and the in-game
+## injury pictures with them (two more memes for the states the difficulties do not share)
+- The new-game page (SystemMenu scene, NewGamePage/Container/Portrait/PhotoMask/Portrait, NewGameMenuPage.
+  m_difficultyImage) shows DifficultySettings.m_difficultySelectSprite of `GameDifficultySettings`
+  (scriptableobjects-static_assets_all.bundle): Story 轻松自在 `fine`, Easy 紧张刺激 `Player_difficuly_inquisitive`,
+  Normal 生存恐怖 ("Survival Horror") `Player_difficuly_upset`, Hard 噩梦 ("Trust No One") `wounded`.
+- The backpack photo (HealthStatusPanel.m_statusImage) shows the `HealthStatusSettings` group for the current
+  health (scriptableobjects-logic_assets_all.bundle; labels from UIGame_zh): <= 25 % 重伤 `critical`, <= 50 %
+  负伤 `wounded`, <= 80 % 轻伤 `injured`, <= 99 % 轻伤 and 100 % 没事 `fine`. HealthAlertPopup (stash page) only
+  tints a 32 px icon with the group colour. So `fine` and `wounded` are shared by both screens. Every photo is
+  Assets/UI/Health/<name>.png, 895x1000 RGB24, alone in its bundle (`injured` shares
+  `..._tvdisplayshader.bundle` with a TV shader and its material). frogify's SKIP_GROUPS already kept the two
+  Player_difficuly_* sprites out of the body patches.
+- The user's mapping (chosen over demon = 负伤 / thinking = 轻伤): fine laughing, inquisitive thinking, upset
+  crying, wounded 早八 (grey, "切换早八模式"), injured demon ("切换恶魔模式"), critical reaper ("切换死神形态"), so
+  the injuries go red -> grey -> black. `fine` replaces v5's thinking-frog close-up. Sources in
+  `frogmod/source/photos/`, re-encoded as plain PNG (one carried EXIF). `frog_extras.fit_photo`: memes without a
+  caption lose their sides (centre column per meme); captioned ones keep their full width: the plain white top is
+  extended (median of the top rows, blurred along the row, 12-row blend), or for the reaper, whose scythe touches
+  the top edge, the purple caption band is lengthened with the text in its middle. Memes under 500 px get an
+  unsharp mask after the enlargement.
+- Both screens draw the photo preserve-aspect at alpha 0.51 over the polaroid's black window (a faded photo), so
+  it shows at about half brightness, as the original paintings did. The new-game page also mirrors it
+  (RectTransform scale x = -1; its paperclip too), which would reverse the captions of the shared `wounded`:
+  SystemMenu RectTransform 3026 m_LocalScale.x -> +1, one byte. UnityPy's save_typetree returns the new bytes;
+  get_raw_data keeps reading the original stream until the file is saved.
+- The SystemMenu scene bundle ships uncompressed (1.09 MB, blocks flagged streamed); rewritten with LZ4 it is
+  155 KB, with both serialized files, their types, externals and node flags unchanged.
+- Build: `frog_extras.py` ~8 s; `verify_extras.py`: each photo bundle changes only its Texture2D, the scene one
+  byte. Installed 2026-10-19: main + 216 patch bundles + globalgamemanagers; the six bundles touched for the
+  first time were backed up (equal to the game's files before the install).
