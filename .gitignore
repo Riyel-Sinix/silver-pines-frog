@@ -31,7 +31,12 @@
 !/frogmod/install_frog.bat
 !/frogmod/restore_original.bat
 !/frogmod/manage_frog.ps1
+!/frogmod/manage_frog.py
+!/frogmod/install_frog.sh
+!/frogmod/restore_original.sh
 !/frogmod/frog_source.png
 !/frogmod/frog_cutout.png
 !/frogmod/source/
 !/frogmod/parts/
+
+!/scripts/test_manage_frog_linux.py
