@@ -51,6 +51,9 @@ function Read-Manifest([string]$Path) {
     }
     $manifest = Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($manifest.schema_version -ne 1) { throw "不支持的清单版本：$Path" }
+    if ($null -ne $manifest.PSObject.Properties['backup_layout'] -and $manifest.backup_layout -ne 'sha256-v1') {
+        throw "不支持的备份存储格式：$Path"
+    }
     foreach ($field in @('gameassembly_sha256', 'metadata_sha256')) {
         if ($manifest.game.$field -notmatch '^[a-fA-F0-9]{64}$') { throw "清单缺少游戏版本校验值：$field" }
     }
@@ -151,13 +154,20 @@ function Assert-Build($Manifest, [string]$BuildRoot) {
     }
 }
 
+function Get-BackupRelativePath($Manifest, $File) {
+    if ($null -ne $Manifest.PSObject.Properties['backup_layout'] -and $Manifest.backup_layout -eq 'sha256-v1') {
+        return 'files/' + $File.source_sha256.ToLowerInvariant() + '.bin'
+    }
+    return $File.game_path
+}
+
 function Assert-Backup($Manifest, [string]$BackupRoot, [string]$GameRoot) {
     if (-not [string]::Equals($Manifest.game_path.TrimEnd('\', '/'), $GameRoot, [StringComparison]::OrdinalIgnoreCase)) {
         throw '备份属于另一个游戏安装目录，操作已取消。'
     }
     Assert-GameVersion $Manifest $GameRoot
     foreach ($file in $Manifest.files) {
-        $path = Get-SafePath $BackupRoot $file.game_path
+        $path = Get-SafePath $BackupRoot (Get-BackupRelativePath $Manifest $file)
         if ((Get-Hash $path) -ne $file.source_sha256) { throw "原版备份校验失败：$path" }
     }
 }
@@ -182,8 +192,11 @@ function Write-Resources($Manifest, [string]$SourceRoot, [string]$GameRoot, [boo
             $target = Get-SafePath $GameRoot $file.game_path
             $sourceRelative = $file.build_path
             $expected = $file.output_sha256
-            if ($Restore) { $sourceRelative = $file.game_path; $expected = $file.source_sha256 }
-            $entry = [PSCustomObject]@{ Target = $target; Stage = "$target.frog-stage-$transaction"; Rollback = "$target.frog-rollback-$transaction" }
+            if ($Restore) { $sourceRelative = Get-BackupRelativePath $Manifest $file; $expected = $file.source_sha256 }
+            # Never append a suffix to the game's long AssetBundle filenames.
+            $directory = [IO.Path]::GetDirectoryName($target)
+            $temporaryName = '.frog-' + $transaction + '-' + $staged.Count
+            $entry = [PSCustomObject]@{ Target = $target; Stage = (Join-Path $directory ($temporaryName + '.stage')); Rollback = (Join-Path $directory ($temporaryName + '.rollback')) }
             $staged.Add($entry)
             Copy-Item -LiteralPath (Get-SafePath $SourceRoot $sourceRelative) -Destination $entry.Stage
             if ((Get-Hash $entry.Stage) -ne $expected) { throw "写入前校验失败：$target" }
@@ -198,7 +211,7 @@ function Write-Resources($Manifest, [string]$SourceRoot, [string]$GameRoot, [boo
             $entry = $applied[$index]
             try { [IO.File]::Replace($entry.Rollback, $entry.Target, [System.Management.Automation.Language.NullString]::Value) } catch { $rollbackFailed = $true }
         }
-        if ($rollbackFailed) { throw "复制失败，部分文件未能回滚。请保留 backup 并运行恢复脚本；失败前的文件另存为 .frog-rollback-$transaction。原始错误：$failure" }
+        if ($rollbackFailed) { throw "复制失败，部分文件未能回滚。请保留 backup 并运行恢复脚本；失败前的文件另存为 .frog-$transaction-*.rollback。原始错误：$failure" }
         throw "复制失败，已撤回本次资源修改：$failure"
     } finally {
         foreach ($entry in $staged) {
@@ -233,10 +246,12 @@ try {
                     throw '检测到已安装的 mod，但没有此安装目录对应的原版备份。请先在 Steam 验证游戏文件完整性，再安装。'
                 }
             }
-            $pending = "$backupRoot.pending-$([Guid]::NewGuid().ToString('N'))"
+            $pending = Join-Path $ModRoot ("backup\.pending-" + [Guid]::NewGuid().ToString('N'))
             try {
+                # Short hash filenames keep both pending and final paths below MAX_PATH.
+                $manifest | Add-Member -NotePropertyName backup_layout -NotePropertyValue 'sha256-v1' -Force
                 foreach ($file in $manifest.files) {
-                    $backupPath = Get-SafePath $pending $file.game_path
+                    $backupPath = Get-SafePath $pending (Get-BackupRelativePath $manifest $file)
                     $null = New-Item -ItemType Directory -Path ([IO.Path]::GetDirectoryName($backupPath)) -Force
                     Copy-Item -LiteralPath (Get-SafePath $gameRoot $file.game_path) -Destination $backupPath
                     if ((Get-Hash $backupPath) -ne $file.source_sha256) { throw "原版备份校验失败：$backupPath" }
@@ -244,10 +259,12 @@ try {
                 $manifest | Add-Member -NotePropertyName game_path -NotePropertyValue $gameRoot -Force
                 $manifest | Add-Member -NotePropertyName created_at -NotePropertyValue ([DateTime]::UtcNow.ToString('o')) -Force
                 $manifest | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $pending 'manifest.json') -Encoding UTF8
+                $null = New-Item -ItemType Directory -Path ([IO.Path]::GetDirectoryName($backupRoot)) -Force
                 Move-Item -LiteralPath $pending -Destination $backupRoot
             } catch {
-                # Leave failed pending backups for inspection; they are never accepted for restore.
-                throw "创建原版备份失败，游戏资源尚未修改：$_"
+                $backupFailure = $_
+                Remove-Item -LiteralPath $pending -Recurse -Force -ErrorAction SilentlyContinue
+                throw "创建原版备份失败，游戏资源尚未修改：$backupFailure"
             }
         }
         Write-Resources $manifest $buildRoot $gameRoot $false

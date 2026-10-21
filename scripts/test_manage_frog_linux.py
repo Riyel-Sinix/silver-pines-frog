@@ -110,11 +110,49 @@ class ProtonInstallerTests(unittest.TestCase):
     def test_install_reinstall_restore_after_build_is_removed(self) -> None:
         self.run_operation()
         self.assert_installed()
+        backup_root = next((self.mod / "backup/versions").iterdir())
+        saved = manage_frog.read_manifest(backup_root / "manifest.json")
+        self.assertEqual(saved["backup_layout"], "sha256-v1")
+        self.assertFalse((backup_root / "Carpenter_Data").exists())
+        for item in self.files:
+            payload = backup_root / "files" / (item["source_sha256"] + ".bin")
+            self.assertEqual(payload.read_bytes(), self.originals[item["game_path"]])
         self.run_operation()
         self.assert_installed()
         shutil.rmtree(self.build)
         self.run_operation("restore")
         self.assert_original()
+
+    def test_legacy_mirrored_backup_supports_reinstall_and_restore(self) -> None:
+        manifest_path = self.build / "manifest.json"
+        key = manage_frog.backup_key(manifest_path, self.manifest, self.game.resolve())
+        backup_root = self.mod / "backup/versions" / key
+        backup_root.mkdir(parents=True)
+        saved = dict(self.manifest)
+        saved["game_path"] = str(self.game.resolve())
+        (backup_root / "manifest.json").write_text(json.dumps(saved), encoding="utf-8")
+        for relative, content in self.originals.items():
+            destination = backup_root.joinpath(*relative.split("/"))
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(content)
+
+        self.run_operation()
+        self.assert_installed()
+        self.run_operation()
+        self.assert_installed()
+        self.assertNotIn("backup_layout", manage_frog.read_manifest(backup_root / "manifest.json"))
+        shutil.rmtree(self.build)
+        self.run_operation("restore")
+        self.assert_original()
+
+    def test_unknown_or_null_backup_layout_is_rejected(self) -> None:
+        for layout in (None, "future-layout", "", 1):
+            with self.subTest(layout=layout):
+                self.manifest["backup_layout"] = layout
+                self.save_manifest()
+                self.run_operation(success=False)
+                self.assert_original()
+                self.assertFalse((self.mod / "backup").exists())
 
     def test_wrong_game_version_is_rejected_before_backup_or_writes(self) -> None:
         (self.game / "GameAssembly.dll").write_bytes(b"different build")
@@ -183,7 +221,8 @@ class ProtonInstallerTests(unittest.TestCase):
     def test_corrupt_backup_refuses_restore_before_writing(self) -> None:
         self.run_operation()
         backup_root = next((self.mod / "backup/versions").iterdir())
-        damaged = backup_root.joinpath(*self.files[-1]["game_path"].split("/"))
+        saved = manage_frog.read_manifest(backup_root / "manifest.json")
+        damaged = backup_root / manage_frog.backup_relative_path(saved, self.files[-1])
         damaged.write_bytes(b"corrupt original")
         self.run_operation("restore", success=False)
         self.assert_installed()

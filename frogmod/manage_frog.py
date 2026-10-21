@@ -176,6 +176,8 @@ def read_manifest(path: Path) -> dict:
         raise ModError(f"Cannot read manifest: {path}: {exc}") from exc
     if not isinstance(manifest, dict) or manifest.get("schema_version") != 1:
         raise ModError(f"Unsupported manifest schema: {path}")
+    if "backup_layout" in manifest and manifest["backup_layout"] != "sha256-v1":
+        raise ModError(f"Unsupported backup layout: {manifest['backup_layout']!r}")
     game = manifest.get("game")
     if not isinstance(game, dict):
         raise ModError("Manifest has no game identity")
@@ -225,6 +227,14 @@ def read_manifest(path: Path) -> dict:
 def manifest_file_list(manifest: dict) -> list[dict]:
     return [{key: item[key] for key in ("game_path", "build_path", "source_sha256", "output_sha256")}
             for item in manifest["files"]]
+
+
+def backup_relative_path(manifest: dict, item: dict) -> str:
+    if "backup_layout" not in manifest:
+        return item["game_path"]
+    if manifest["backup_layout"] != "sha256-v1":
+        raise ModError(f"Unsupported backup layout: {manifest['backup_layout']!r}")
+    return "files/" + item["source_sha256"].lower() + ".bin"
 
 
 def assert_game_version(manifest: dict, game_root: Path) -> None:
@@ -294,6 +304,7 @@ def _backup_manifest(manifest: dict, game_root: Path) -> dict:
     saved = dict(manifest)
     saved["game"] = dict(manifest["game"])
     saved["files"] = [dict(item) for item in manifest["files"]]
+    saved["backup_layout"] = "sha256-v1"
     saved["game_path"] = str(game_root)
     saved["created_at"] = datetime.now(timezone.utc).isoformat()
     return saved
@@ -304,7 +315,7 @@ def _assert_backup(manifest: dict, backup_root: Path, game_root: Path) -> None:
         raise ModError("Backup belongs to a different game directory")
     assert_game_version(manifest, game_root)
     for item in manifest["files"]:
-        backup_path = safe_path(backup_root, item["game_path"])
+        backup_path = safe_path(backup_root, backup_relative_path(manifest, item))
         require_regular_file(backup_path, "original backup")
         if sha256(backup_path) != item["source_sha256"].lower():
             raise ModError(f"Original backup hash mismatch: {backup_path}")
@@ -324,16 +335,16 @@ def create_backup(manifest_path: Path, manifest: dict, game_root: Path) -> Path:
 
     pending_relative = f"backup/versions/{key}.pending-{uuid.uuid4().hex}"
     pending_root = safe_path(MOD_ROOT, pending_relative)
+    backup_manifest = _backup_manifest(manifest, game_root)
     try:
         pending_root.mkdir(parents=True)
         for item in manifest["files"]:
             source = safe_path(game_root, item["game_path"])
-            backup = safe_path(pending_root, item["game_path"])
+            backup = safe_path(pending_root, backup_relative_path(backup_manifest, item))
             backup.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, backup)
             if sha256(backup) != item["source_sha256"].lower():
                 raise ModError(f"Original backup verification failed: {backup}")
-        backup_manifest = _backup_manifest(manifest, game_root)
         manifest_out = safe_path(pending_root, "manifest.json")
         manifest_out.write_text(json.dumps(backup_manifest, ensure_ascii=False, indent=2) + "\n",
                                 encoding="utf-8")
@@ -359,7 +370,7 @@ def _transaction(manifest: dict, game_root: Path, *, restore_root: Path | None =
                 source = safe_path(MOD_ROOT, build_relative_path(item["build_path"]))
                 expected = item["output_sha256"].lower()
             else:
-                source = safe_path(restore_root, item["game_path"])
+                source = safe_path(restore_root, backup_relative_path(manifest, item))
                 expected = source_hash
             temp = target.with_name(f".{target.name}.frog-stage-{transaction}")
             rollback = target.with_name(f".{target.name}.frog-rollback-{transaction}")

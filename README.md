@@ -39,6 +39,11 @@ The source contains no game files; a prebuilt package for the current game versi
 找不到时，把游戏文件夹拖到这个 bat 文件上。卸载用同一个文件夹里的 `restore_original.bat`。
 v7 对应 Steam build **25964535**（Unity 6000.3.15f1）；安装前校验程序、原版资源及模组资源的 SHA256。
 
+v7.2 修复 Windows PowerShell 5.1 创建备份和写入临时资源时的路径长度限制。已下载 v7 的用户，
+只需将新版 `manage_frog.ps1` 覆盖到原解压目录，再运行 `install_frog.bat`，无需重新下载资源或游戏。
+新备份使用 `files/<SHA256>.bin` 短路径，恢复映射保存在备份的 `manifest.json` 中；请保留整份备份并使用新版脚本恢复。
+新版脚本也能恢复已有的 v7 目录式版本备份。
+
 从 v6 或更早版本升级：游戏更新前，先用旧版卸载。游戏已经更新或重新下载过时，先在 Steam 里
 「验证游戏文件的完整性」，再安装 v7。请保留旧备份；v7 会在 `backup/versions/` 单独保存与当前游戏匹配的原版。
 
