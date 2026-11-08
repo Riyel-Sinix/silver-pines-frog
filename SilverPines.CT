@@ -29,6 +29,13 @@ local function scan(tag, aob)
   end
   return a
 end
+local function scanAny(tag, aobs)  -- the first signature that matches exactly once
+  for _, aob in ipairs(aobs) do
+    local a = AOBScanModuleUnique(MOD, aob, '+X')
+    if a ~= nil and a ~= 0 then return a end
+  end
+  error('特征码没找到（' .. tag .. '）：游戏版本可能和本表不一致。')
+end
 local function rip(ins, dispOff, insLen)  -- target of a RIP-relative operand
   return ins + insLen + readInteger(ins + dispOff, true)
 end
@@ -38,7 +45,10 @@ local function reg(sym, addr)
 end
 
 SP.slot = {
-  GDC = { name = 'GameDebugCommands', addr = rip(scan('GameDebugCommands', '48 8B 05 ?? ?? ?? ?? 0F 57 FF C7 84 24 88 00 00 00 00 00 00 00 C7 44 24 30 00 00 00 00 48 8B 88 B8 00 00 00 80 79 03 00'), 3, 7) },
+  -- CharacterStamina.ConsumeStamina reading CHEAT_INFINITE_STAMINA: Steam build 26489514 layout first, then 25964535
+  GDC = { name = 'GameDebugCommands', addr = rip(scanAny('GameDebugCommands', {
+          '48 8B 05 ?? ?? ?? ?? 0F 57 FF C7 44 24 30 00 00 00 00 C7 44 24 34 00 00 00 00 48 8B 88 B8 00 00 00 80 79 03 00',
+          '48 8B 05 ?? ?? ?? ?? 0F 57 FF C7 84 24 88 00 00 00 00 00 00 00 C7 44 24 30 00 00 00 00 48 8B 88 B8 00 00 00 80 79 03 00'}), 3, 7) },
   GR  = { name = 'GlobalReferences',  addr = rip(scan('GlobalReferences', '48 8B 05 ?? ?? ?? ?? 0F 11 44 24 20 48 8B 88 B8 00 00 00 48 8B 19 48 8B 0D'), 3, 7) },
   CH  = { name = 'CharacterHealth',   addr = rip(scan('CharacterHealth', '48 8B 05 ?? ?? ?? ?? 45 32 ED 44 8B A3 AC 00 00 00 44 39 B8 E4 00 00 00'), 3, 7) },
 }

@@ -1,7 +1,7 @@
-Alice_EndingTurn  [team17_auto_patch_scene_assets_compressed_assets_ending_beach_f2c9415d]  len=20.22
+Alice_EndingTurn  [team17_auto_patch_scene_assets_compressed_assets_ending_beach_1c9db535]  len=20.22
     paths: ['Sprite']
     sprites: ?cab-099b89a8:[980192797395612690-980192797395612690 n1], ?cab-099b89a8:-[7608913782972968477-7608913782972968477 n1], AliceTurnInEnding[1-7 n7], AliceTurnInEnding_idle
-Alice_TalkIdle  [team17_auto_patch_scene_assets_compressed_assets_ending_beach_f2c9415d]  len=1.00
+Alice_TalkIdle  [team17_auto_patch_scene_assets_compressed_assets_ending_beach_1c9db535]  len=1.00
     paths: ['Sprite']
     sprites: ?cab-099b89a8:[980192797395612690-980192797395612690 n1], ?cab-099b89a8:-[7608913782972968477-7608913782972968477 n1]
 Player_Aim  [team17_auto_base_characters_assets_player.bundle]  len=85.22
@@ -10,10 +10,10 @@ Player_Aim  [team17_auto_base_characters_assets_player.bundle]  len=85.22
 Player_AimTurnGun  [team17_auto_base_characters_assets_player.bundle]  len=0.20
     paths: ['Sprite']
     sprites: PlayerAimTurnGun[0-4 n5]
-Player_AimTurnRifle  [team17_auto_patch_general_compressed_assets_player_aimturnrifle_b35e42]  len=0.20
+Player_AimTurnRifle  [team17_auto_patch_general_compressed_assets_player_aimturnrifle_d1ce9e]  len=0.20
     paths: ['Sprite']
     sprites: PlayerRifleTurn[0-4 n5]
-Player_Aim_Arm_Pistol  [team17_auto_patch_general_compressed_assets_player_aim_arm_pistol_b528]  len=15.00
+Player_Aim_Arm_Pistol  [team17_auto_patch_general_compressed_assets_player_aim_arm_pistol_9a47]  len=15.00
     paths: ['<root>']
     sprites: PlayerAimArm[0-29 n30]
 Player_Backstep  [team17_auto_base_characters_assets_player.bundle]  len=0.60
@@ -31,16 +31,16 @@ Player_BurnMementosFeedFire  [team17_auto_base_characters_assets_player.bundle] 
 Player_BurnMementosIdle  [team17_auto_base_characters_assets_player.bundle]  len=2.00
     paths: ['Sprite']
     sprites: Player_BurnMementosEnter[17-20 n4]
-Player_Crank_Enter  [team17_auto_patch_general_compressed_assets_player_crank_enter_55fce6c]  len=0.60
+Player_Crank_Enter  [team17_auto_patch_general_compressed_assets_player_crank_enter_c545e69]  len=0.60
     paths: ['Sprite']
     sprites: PlayerCrank[0-5 n6]
-Player_Crank_Exit  [team17_auto_patch_general_compressed_assets_player_crank_exit_e592a9e8]  len=0.50
+Player_Crank_Exit  [team17_auto_patch_general_compressed_assets_player_crank_exit_391114b7]  len=0.50
     paths: ['Sprite']
     sprites: PlayerCrank[1-5 n5]
-Player_Crank_Idle  [team17_auto_patch_general_compressed_assets_player_crank_idle_2225c093]  len=0.80
+Player_Crank_Idle  [team17_auto_patch_general_compressed_assets_player_crank_idle_e74db0a1]  len=0.80
     paths: ['Sprite']
     sprites: PlayerCrank[5-6 n2]
-Player_Crank_Turn  [team17_auto_patch_general_compressed_assets_player_crank_turn_3c1e2a40]  len=0.80
+Player_Crank_Turn  [team17_auto_patch_general_compressed_assets_player_crank_turn_d9050183]  len=0.80
     paths: ['Sprite']
     sprites: PlayerCrank[6-13 n8]
 Player_CrouchAim  [team17_auto_base_characters_assets_player.bundle]  len=23.00
@@ -106,13 +106,13 @@ Player_CrouchWalk  [team17_auto_base_characters_assets_player.bundle]  len=0.99
 Player_Dead  [team17_auto_base_characters_assets_player.bundle]  len=1.33
     paths: ['Sprite']
     sprites: PlayerDeath[0-19 n20]
-Player_DialogueCatEnter  [team17_auto_patch_general_compressed_assets_player_dialoguecatenter_e1]  len=2.20
+Player_DialogueCatEnter  [team17_auto_patch_general_compressed_assets_player_dialoguecatenter_38]  len=2.20
     paths: ['Sprite']
     sprites: PlayerPetCat[0-21 n22]
-Player_DialogueCatExit  [team17_auto_patch_general_compressed_assets_player_dialoguecatexit_3c6]  len=0.80
+Player_DialogueCatExit  [team17_auto_patch_general_compressed_assets_player_dialoguecatexit_5f8]  len=0.80
     paths: ['Sprite']
     sprites: PlayerPetCat[21-24 n4]
-Player_DialogueCatIdle  [team17_auto_patch_general_compressed_assets_player_dialoguecatidle_bd7]  len=0.10
+Player_DialogueCatIdle  [team17_auto_patch_general_compressed_assets_player_dialoguecatidle_b8f]  len=0.10
     paths: ['Sprite']
     sprites: PlayerPetCat[21-21 n1]
 Player_Dialogue_Enter  [team17_auto_base_characters_assets_player.bundle]  len=1.10
@@ -139,7 +139,7 @@ Player_Dig_ExitContinue  [team17_auto_base_characters_assets_player.bundle]  len
 Player_Dig_Fail  [team17_auto_base_characters_assets_player.bundle]  len=2.05
     paths: ['Sprite']
     sprites: PlayerDig[0-8 n4]
-Player_DodgeEasy  [team17_auto_patch_general_compressed_assets_player_dodgeeasy_2a1011317]  len=0.58
+Player_DodgeEasy  [team17_auto_patch_general_compressed_assets_player_dodgeeasy_03326e631]  len=0.58
     paths: ['Sprite']
     sprites: PlayerStumbleRun[0-13 n14]
 Player_DoorEnterFront  [team17_auto_base_characters_assets_player.bundle]  len=2.12
@@ -163,7 +163,10 @@ Player_DrawGun  [team17_auto_base_characters_assets_player.bundle]  len=0.35
 Player_DrawGunBlocked  [team17_auto_base_characters_assets_player.bundle]  len=0.02
     paths: ['Sprite']
     sprites: PlayerAimBlockedGun
-Player_DrawGunCutscene  [team17_auto_patch_general_compressed_assets_player_drawguncutscene_e87]  len=0.30
+Player_DrawGunBlockedArm  [team17_auto_patch_general_compressed_assets_player_drawgunblockedarm_3]  len=0.02
+    paths: ['<root>']
+    sprites: PlayerAimBlockedGun_hand
+Player_DrawGunCutscene  [team17_auto_patch_general_compressed_assets_player_drawguncutscene_3bb]  len=0.30
     paths: ['Sprite']
     sprites: PlayerDrawGun[0-5 n6]
 Player_DrawGunCutsceneArm  [team17_auto_patch_general_compressed_assets_player_drawguncutscenearm_]  len=0.35
@@ -184,10 +187,10 @@ Player_DrawRifleBlocked  [team17_auto_base_characters_assets_player.bundle]  len
 Player_DrawRifleBlockedArm  [team17_auto_patch_general_compressed_assets_player_drawrifleblockedarm]  len=0.02
     paths: ['<root>']
     sprites: PlayerAimBlockedRifle_arms
-Player_DrawRifleEnd  [team17_auto_patch_general_compressed_assets_player_drawrifleend_8fc4ec]  len=0.25
+Player_DrawRifleEnd  [team17_auto_patch_general_compressed_assets_player_drawrifleend_8948fa]  len=0.25
     paths: ['Sprite']
     sprites: PlayerRifleDraw[0-4 n5]
-Player_DrawRifleEndArm  [team17_auto_patch_general_compressed_assets_player_drawrifleendarm_7f8]  len=0.25
+Player_DrawRifleEndArm  [team17_auto_patch_general_compressed_assets_player_drawrifleendarm_547]  len=0.25
     paths: ['<root>']
     sprites: PlayerRifleDrawArms[0-4 n5]
 Player_DrinkCoffee  [team17_auto_base_characters_assets_player.bundle]  len=4.67
@@ -208,7 +211,7 @@ Player_Ferry_React  [team17_auto_base_characters_assets_player.bundle]  len=4.17
 Player_Ferry_Talk  [team17_auto_base_characters_assets_player.bundle]  len=3.00
     paths: ['Sprite']
     sprites: PlayerFerryCutscene[18-23 n6]
-Player_Ferry_TurnToSun  [team17_auto_patch_scene_assets_compressed_assets_ending_beach_f2c9415d]  len=17.14
+Player_Ferry_TurnToSun  [team17_auto_patch_scene_assets_compressed_assets_ending_beach_1c9db535]  len=17.14
     paths: ['Sprite']
     sprites: PlayerFerryCutscene[0-23 n24]
 Player_GetupPuke  [team17_auto_patch_scene_assets_compressed_assets_downtown_cable_statio]  len=4.65
@@ -220,10 +223,10 @@ Player_GrabbedByWormperson  [team17_auto_base_characters_assets_player.bundle]  
 Player_Headache  [team17_auto_base_characters_assets_player.bundle]  len=2.00
     paths: ['Sprite']
     sprites: PlayerHeadache[0-13 n14]
-Player_Headache_Enter  [team17_auto_patch_general_compressed_assets_fsmplayerheadachetrigger_2]  len=0.30
+Player_Headache_Enter  [team17_auto_patch_general_compressed_assets_fsmplayerheadachetrigger_f]  len=0.30
     paths: ['Sprite']
     sprites: PlayerHeadache[11-13 n3]
-Player_Headache_Frenzy  [team17_auto_patch_general_compressed_assets_player_headache_frenzy_ace]  len=1.05
+Player_Headache_Frenzy  [team17_auto_patch_general_compressed_assets_player_headache_frenzy_c14]  len=1.05
     paths: ['Sprite']
     sprites: PlayerHeadache[0-13 n14]
 Player_Headache_Loop  [team17_auto_base_characters_assets_player.bundle]  len=2.45
@@ -253,10 +256,10 @@ Player_Hurt2  [team17_auto_base_characters_assets_player.bundle]  len=0.30
 Player_Hurt3  [team17_auto_base_characters_assets_player.bundle]  len=0.37
     paths: ['Sprite']
     sprites: PlayerHurtSmall[300-309 n10]
-Player_HurtBack  [team17_auto_patch_general_compressed_assets_player_hurtback_fd40670f4f]  len=0.70
+Player_HurtBack  [team17_auto_patch_general_compressed_assets_player_hurtback_137740e7e0]  len=0.70
     paths: ['Sprite']
     sprites: PlayerHurtBack[0-11 n12]
-Player_HurtFromCat  [team17_auto_patch_general_compressed_assets_player_hurtfromcat_de39522]  len=2.54
+Player_HurtFromCat  [team17_auto_patch_general_compressed_assets_player_hurtfromcat_5894d18]  len=2.54
     paths: ['Sprite']
     sprites: PlayerHurtCat[0-9 n10], PlayerPetCat[20-24 n5]
 Player_InteractBoat_Enter  [team17_auto_base_characters_assets_player.bundle]  len=0.80
@@ -298,16 +301,16 @@ Player_ItemUse_Eating  [team17_auto_base_characters_assets_player.bundle]  len=2
 Player_ItemUse_Eating_Fast  [team17_auto_base_characters_assets_player.bundle]  len=1.30
     paths: ['Sprite']
     sprites: PlayerDrinkCoffee[1-24 n13]
-Player_ItemUse_ManholeKeyCancel  [team17_auto_patch_general_compressed_assets_abs_manholecover_d4057c683]  len=0.80
+Player_ItemUse_ManholeKeyCancel  [team17_auto_patch_general_compressed_assets_abs_manholecover_127d755d3]  len=0.80
     paths: ['Sprite']
     sprites: PlayerUseManhole[0-7 n8]
-Player_ItemUse_ManholeKeyEnter  [team17_auto_patch_general_compressed_assets_abs_manholecover_d4057c683]  len=0.80
+Player_ItemUse_ManholeKeyEnter  [team17_auto_patch_general_compressed_assets_abs_manholecover_127d755d3]  len=0.80
     paths: ['Sprite']
     sprites: PlayerUseManhole[0-7 n8]
-Player_ItemUse_ManholeKeyExit  [team17_auto_patch_general_compressed_assets_abs_manholecover_d4057c683]  len=3.39
+Player_ItemUse_ManholeKeyExit  [team17_auto_patch_general_compressed_assets_abs_manholecover_127d755d3]  len=3.39
     paths: ['Sprite']
     sprites: PlayerUseManhole[12-32 n21]
-Player_ItemUse_ManholeKeyIdle  [team17_auto_patch_general_compressed_assets_abs_manholecover_d4057c683]  len=0.40
+Player_ItemUse_ManholeKeyIdle  [team17_auto_patch_general_compressed_assets_abs_manholecover_127d755d3]  len=0.40
     paths: ['Sprite']
     sprites: PlayerUseManhole[7-7 n1]
 Player_ItemUse_RepairMelee  [team17_auto_base_characters_assets_player.bundle]  len=4.62
@@ -319,7 +322,7 @@ Player_ItemUse_RepairMelee_Exit  [team17_auto_base_characters_assets_player.bund
 Player_ItemUse_Spike  [team17_auto_base_characters_assets_player.bundle]  len=5.30
     paths: ['Sprite']
     sprites: PlayerUseHalfTurn[0-1 n2], PlayerUseSpike[0-29 n30]
-Player_ItemUse_Syringe  [team17_auto_patch_general_compressed_assets_player_itemuse_syringe_69f]  len=1.00
+Player_ItemUse_Syringe  [team17_auto_patch_general_compressed_assets_player_itemuse_syringe_ba4]  len=1.00
     paths: ['Sprite']
     sprites: PlayerReload[1-10 n5]
 Player_ItemUse_TakePhotoEnter  [team17_auto_base_characters_assets_player.bundle]  len=0.79
@@ -355,7 +358,7 @@ Player_KnifeSwingCombo2  [team17_auto_base_characters_assets_player.bundle]  len
 Player_KnifeSwingComboRecover  [team17_auto_base_characters_assets_player.bundle]  len=0.50
     paths: ['Sprite']
     sprites: PlayerKnifeSwingRecover[3-13 n11]
-Player_KnifeSwingCrouch  [team17_auto_base_characters_assets_player.bundle]  len=1.26
+Player_KnifeSwingCrouch  [team17_auto_base_characters_assets_player.bundle]  len=1.21
     paths: ['Sprite']
     sprites: PlayerCrouchKnifeSwing[0-16 n17]
 Player_KnifeSwingRebound  [team17_auto_base_characters_assets_player.bundle]  len=0.34
@@ -409,7 +412,7 @@ Player_OpenDoorSlow  [team17_auto_base_characters_assets_player.bundle]  len=4.5
 Player_PetCat  [team17_auto_base_characters_assets_player.bundle]  len=2.50
     paths: ['Sprite']
     sprites: PlayerPetCat[0-24 n25]
-Player_PetHorse  [team17_auto_patch_general_compressed_assets_player_pethorse_6f91aa4548]  len=3.30
+Player_PetHorse  [team17_auto_patch_general_compressed_assets_player_pethorse_add0c23009]  len=3.30
     paths: ['Sprite']
     sprites: PlayerUseHalf[0-2 n3], PlayerPetHorse[0-13 n14]
 Player_PickUpGroundEnter  [team17_auto_base_characters_assets_player.bundle]  len=0.40
@@ -421,7 +424,7 @@ Player_PickUpGroundExit  [team17_auto_base_characters_assets_player.bundle]  len
 Player_PickUpGroundIdle  [team17_auto_base_characters_assets_player.bundle]  len=1.00
     paths: ['Sprite']
     sprites: PlayerPickUpGround[4-5 n2]
-Player_PryOpenWood_Exit  [team17_auto_patch_general_compressed_assets_player_pryopenwood_exit_bc]  len=0.80
+Player_PryOpenWood_Exit  [team17_auto_patch_general_compressed_assets_player_pryopenwood_exit_41]  len=0.80
     paths: ['Sprite']
     sprites: PlayerPryOpen[20-26 n7]
 Player_PryOpen_Enter  [team17_auto_base_characters_assets_player.bundle]  len=0.90
@@ -460,7 +463,7 @@ Player_ReachIntoHole_Loop  [team17_auto_base_characters_assets_player.bundle]  l
 Player_ReloadPistol  [team17_auto_base_characters_assets_player.bundle]  len=0.62
     paths: ['Sprite']
     sprites: PlayerReload[4-8 n5]
-Player_ReloadPistol_Arms  [team17_auto_patch_general_compressed_assets_player_reloadpistol_arms_a]  len=0.62
+Player_ReloadPistol_Arms  [team17_auto_patch_general_compressed_assets_player_reloadpistol_arms_7]  len=0.62
     paths: ['<root>']
     sprites: PlayerReloadArms[4-8 n5]
 Player_ReloadPistol_Finish  [team17_auto_base_characters_assets_player.bundle]  len=0.73
@@ -535,7 +538,7 @@ Player_ReloadShotgunStart  [team17_auto_base_characters_assets_player.bundle]  l
 Player_ReloadShotgunStartArm  [team17_auto_base_characters_assets_player.bundle]  len=0.29
     paths: ['<root>']
     sprites: PlayerReloadShotgunArm[0-4 n5]
-Player_Rifle_Lever_Pump  [team17_auto_patch_general_compressed_assets_player_rifle_lever_pump_10]  len=0.50
+Player_Rifle_Lever_Pump  [team17_auto_patch_general_compressed_assets_player_rifle_lever_pump_3e]  len=0.50
     paths: ['<root>']
     sprites: PlayerReloadBoltActionArm[0-3 n4]
 Player_Roll  [team17_auto_base_characters_assets_player.bundle]  len=0.63

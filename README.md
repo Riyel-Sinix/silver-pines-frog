@@ -37,7 +37,9 @@ The source contains no game files; a prebuilt package for the current game versi
 到 [Releases](https://github.com/Riyel-Sinix/silver-pines-frog/releases) 下载最新的 `silver-pines-frog-v*.zip`，解压后**先退出游戏**，
 双击 `install_frog.bat`。默认查找 `D:\SteamLibrary\steamapps\common\Silver Pines`，也会查找其他 Steam 库；
 找不到时，把游戏文件夹拖到这个 bat 文件上。卸载用同一个文件夹里的 `restore_original.bat`。
-v7 对应 Steam build **25964535**（Unity 6000.3.15f1）；安装前校验程序、原版资源及模组资源的 SHA256。
+v8 对应 2026-11-08 更新后的 Steam build **26489514**（Unity 6000.3.15f1）；安装前校验程序、原版资源及模组资源的 SHA256。
+这次游戏更新换了主角图包、菜单场景和 200 多个补丁包的文件名，v7.x 的资源不能用于新版游戏；旧版游戏（25964535）请继续用 v7.2。
+装过 v7 又被游戏更新覆盖的：先在 Steam「验证游戏文件的完整性」，再运行 v8 的 `install_frog.bat`。
 
 v7.2 修复 Windows PowerShell 5.1 创建备份和写入临时资源时的路径长度限制。已下载 v7 的用户，
 只需将新版 `manage_frog.ps1` 覆盖到原解压目录，再运行 `install_frog.bat`，无需重新下载资源或游戏。
@@ -121,7 +123,7 @@ v7.2 修复 Windows PowerShell 5.1 创建备份和写入临时资源时的路径
 电器电量不减、花钱不减少、修改金钱、地图全显示、万能钥匙。
 
 所有地址都靠特征码查找，并在写入前校验 IL2CPP 类名；游戏版本对不上时会直接提示，不会乱改内存。
-已对 Steam build 25964535 做离线核验：8 个特征均唯一，所用字段布局不变。新版游戏内功能仍需实测。
+已对 Steam build 26489514 做离线核验：8 个特征均唯一（体力开关换用新的特征码，同时保留旧版特征码，两个版本都能用），所用字段布局不变。新版游戏内功能仍需实测。
 
 ## 目录
 

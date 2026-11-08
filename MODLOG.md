@@ -270,3 +270,20 @@
 - Installed 218 files to Steam, restored and verified all 218 against the official SHA1, then reinstalled
   and verified all outputs. Original backup: frogmod/backup/versions/b14b782f7c24e15b-fe22b65fd867-67f2df37/.
   Prior build retained as frogmod/build_v6_before_steam_25964535/. Game has not been launched for runtime testing.
+
+## Frog v8 (2026-11-08) — Steam build 26489514 (game update)
+- Update changed GameAssembly/metadata, the main player bundle, `team17_auto_base_characters_assets_player.bundle`,
+  the SystemMenu scene and globalgamemanagers; 208 patch bundles got new hash suffixes and one new patch bundle
+  (`player_drawgunblockedarm`) appeared. The update left the Steam folder with official files only (mod gone).
+  `scripts/update_status.py` classifies every manifest file as modded / original / changed / missing.
+- Full rebuild with `build_frog.py --output frogmod/build_26489514` (~20 min incl. index refresh of 2361 bundles):
+  219 files. Audio flag now at globalgamemanagers offset 5736. Verification: main 1929 sprites / 1866 full-rect /
+  60 tight / 3 unchanged quads, 0 bad; 207 sprite patch bundles 0 problems (verify_patches on a copy without the
+  extras bundles + its own bundles.txt); verify_extras: laugh 197 frames 16.42 s, 396 preload refs resolved,
+  13 portraits, 6 photos, systemmenu scale fix. Previous build kept as frogmod/build_v7_steam_25964535/.
+- Installed (219 modded), restore -> 219 original, reinstall -> 219 modded. Backup:
+  frogmod/backup/versions/7110a03694617f57-31bd5b673d24-67f2df37/. Installer fixture tests pass.
+- CE: Il2CppDumper dump in _dump/new_20261108/. ConsumeStamina was restructured, so the GameDebugCommands
+  signature changed; the table now tries the 26489514 pattern, then the 25964535 one (scanAny). The other 7
+  signatures moved but stay unique; all 14 dependent fields keep their offsets. patterns.json holds the new RVAs.
+- Released as v8.0 (silver-pines-frog-v8.zip via release/package_v8.py). Not run in game yet.
