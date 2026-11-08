@@ -286,4 +286,4 @@
 - CE: Il2CppDumper dump in _dump/new_20261108/. ConsumeStamina was restructured, so the GameDebugCommands
   signature changed; the table now tries the 26489514 pattern, then the 25964535 one (scanAny). The other 7
   signatures moved but stay unique; all 14 dependent fields keep their offsets. patterns.json holds the new RVAs.
-- Released as v8.0 (silver-pines-frog-v8.zip via release/package_v8.py). Not run in game yet.
+- Released as v8.0 (silver-pines-frog-v8.zip via release/package_v8.py). Tested in game by the user 2026-11-08: frog works. CE features not exercised in game.
